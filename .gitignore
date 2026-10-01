@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Secrets
+.env
+kaggle.json
+
+# Large / regenerable data (small committed samples live in data/sample/)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Model weights (downloaded/exported by scripts; small ONNX may be committed via LFS later)
+models/*
+!models/.gitkeep
+
+# Notebook / IDE
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,31 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    command: uvicorn ripple.api.main:app --host 0.0.0.0 --port 8000
+    env_file: [.env.example]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    ports: ["8000:8000"]
+    depends_on:
+      redis: { condition: service_healthy }
+
+  dashboard:
+    build: .
+    command: streamlit run src/ripple/dashboard/app.py --server.port 8501 --server.address 0.0.0.0
+    environment:
+      API_URL: http://api:8000
+    ports: ["8501:8501"]
+    depends_on: [api]
+
+  # Added on Day 2-3 / Day 6:
+  # ingestor:     python -m ripple.ingestion.run
+  # engine:       python -m ripple.engine.worker
+  # stress_test:  python -m ripple.stress_test.worker
