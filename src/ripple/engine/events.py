@@ -10,9 +10,12 @@ from dataclasses import dataclass
 from ripple.schemas import EventType
 
 RULES: dict[EventType, list[tuple[str, float]]] = {
+    # A bare "downgrade" is usually an equity analyst rating change ("Goldman downgrades X"), not a credit
+    # event, so it only counts when it comes with credit vocabulary.
     EventType.CREDIT_EVENT: [
-        (r"default(ed|s)?|bankrupt\w*|chapter 11|insolven\w*|downgrade[ds]?|junk|credit rating|debt crisis", 2.0),
-        (r"moody'?s|fitch|s&p global ratings|liquidity crunch|missed (a )?payment|restructur\w*", 1.5),
+        (r"default(ed|s)?|bankrupt\w*|chapter 11|insolven\w*|junk|credit rating|debt crisis", 2.0),
+        (r"(credit|debt|bond|sovereign) (rating )?downgrade|downgraded? to junk|cut to junk", 2.0),
+        (r"moody'?s|fitch|s&p global ratings|liquidity crunch|missed (a )?payment|debt restructur\w*", 1.5),
     ],
     EventType.GEOPOLITICAL: [
         (r"tariffs?|trade war|trade tensions?|sanctions?|embargo|military|\bwar\b|missile|nuclear", 2.0),

@@ -47,6 +47,8 @@ def test_linker_cashtags_and_hints(linker):
         ("U.S. slaps new tariffs on $200 billion of Chinese goods as trade war escalates", EventType.GEOPOLITICAL),
         ("Turkish lira plunges as emerging markets sell off on inflation fears", EventType.MACROECONOMIC),
         ("Moody's downgrade pushes issuer toward default", EventType.CREDIT_EVENT),
+        ("Turkey's sovereign debt downgraded to junk by Fitch", EventType.CREDIT_EVENT),
+        ("Goldman downgrades Parker Hannifin, Rockwell Automation", EventType.OTHER),
         ("Disney completes acquisition of 21st Century Fox assets", EventType.MERGER_ACQUISITION),
         ("FTC probe into Facebook privacy practices widens", EventType.REGULATORY_LEGAL),
         ("A nice sunny day", EventType.OTHER),
