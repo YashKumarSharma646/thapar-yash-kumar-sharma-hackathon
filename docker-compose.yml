@@ -1,5 +1,13 @@
 name: ripple
 
+x-app: &app
+  env_file: [.env.example]
+  environment:
+    REDIS_URL: redis://redis:6379/0
+    API_URL: http://api:8000
+  depends_on:
+    redis: { condition: service_healthy }
+
 services:
   redis:
     image: redis:7-alpine
@@ -10,24 +18,36 @@ services:
       retries: 10
 
   api:
-    build: .
+    <<: *app
+    build: { context: ., target: base }
+    image: ripple-base
     command: uvicorn ripple.api.main:app --host 0.0.0.0 --port 8000
-    env_file: [.env.example]
-    environment:
-      REDIS_URL: redis://redis:6379/0
     ports: ["8000:8000"]
+
+  engine:
+    <<: *app
+    build: { context: ., target: engine }
+    image: ripple-engine
+    command: python -m ripple.engine.worker
+    volumes:
+      - ./data/processed:/app/data/processed   # signals.jsonl is written to the host
+
+  ingestor:
+    <<: *app
+    build: { context: ., target: base }
+    image: ripple-base
+    command: python -m ripple.ingestion.run
     depends_on:
       redis: { condition: service_healthy }
+      engine: { condition: service_started }
 
   dashboard:
-    build: .
+    <<: *app
+    build: { context: ., target: base }
+    image: ripple-base
     command: streamlit run src/ripple/dashboard/app.py --server.port 8501 --server.address 0.0.0.0
-    environment:
-      API_URL: http://api:8000
     ports: ["8501:8501"]
     depends_on: [api]
 
-  # Added on Day 2-3 / Day 6:
-  # ingestor:     python -m ripple.ingestion.run
-  # engine:       python -m ripple.engine.worker
+  # Day 6-7:
   # stress_test:  python -m ripple.stress_test.worker

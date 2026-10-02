@@ -15,7 +15,7 @@ STREAM_SIGNALS = "ripple:signals"
 
 # Ingestion: "replay" (offline, default, reproducible) or "live" (GDELT + optional keyed APIs).
 INGEST_MODE = os.getenv("INGEST_MODE", "replay")
-REPLAY_SPEED = float(os.getenv("REPLAY_SPEED", "60"))  # simulated seconds per real second
+REPLAY_SPEED = float(os.getenv("REPLAY_SPEED", "7200"))  # simulated seconds per real second
 
 # Optional API keys; the system must run fully without them.
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY", "")

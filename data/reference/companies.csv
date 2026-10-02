@@ -1,0 +1,31 @@
+ticker,name,tweet_name,sector,aliases
+AAPL,Apple Inc.,Apple,Technology,Apple|iPhone|iPad|Tim Cook
+MSFT,Microsoft Corp.,Microsoft,Technology,Microsoft|Satya Nadella|Azure
+GOOGL,Alphabet Inc.,Google,Communication Services,Google|Alphabet|YouTube|Sundar Pichai
+AMZN,Amazon.com Inc.,Amazon,Consumer Discretionary,Amazon|AWS|Jeff Bezos|Bezos
+FB,Facebook Inc.,Facebook,Communication Services,Facebook|Instagram|WhatsApp|Zuckerberg
+NFLX,Netflix Inc.,Netflix,Communication Services,Netflix
+INTC,Intel Corp.,Intel,Technology,Intel
+CSCO,Cisco Systems Inc.,Cisco,Technology,Cisco
+ORCL,Oracle Corp.,Oracle,Technology,Oracle
+IBM,International Business Machines,IBM,Technology,IBM|Big Blue
+ADBE,Adobe Inc.,Adobe,Technology,Adobe
+DIS,Walt Disney Co.,Disney,Communication Services,Disney|ESPN|Pixar
+CMCSA,Comcast Corp.,Comcast,Communication Services,Comcast|NBCUniversal|Xfinity
+VZ,Verizon Communications,Verizon,Communication Services,Verizon
+NKE,Nike Inc.,Nike,Consumer Discretionary,Nike
+SBUX,Starbucks Corp.,Starbucks,Consumer Discretionary,Starbucks
+MCD,McDonald's Corp.,McDonald's,Consumer Discretionary,McDonald's|McDonalds
+F,Ford Motor Co.,Ford,Consumer Discretionary,Ford Motor|Ford
+WMT,Walmart Inc.,Walmart,Consumer Staples,Walmart|Wal-Mart
+COST,Costco Wholesale Corp.,Costco,Consumer Staples,Costco
+PEP,PepsiCo Inc.,Pepsi,Consumer Staples,PepsiCo|Pepsi
+KO,Coca-Cola Co.,CocaCola,Consumer Staples,Coca-Cola|Coca Cola|Coke
+JPM,JPMorgan Chase & Co.,JPMorgan,Financials,JPMorgan|JP Morgan|J.P. Morgan|Jamie Dimon
+C,Citigroup Inc.,Citigroup,Financials,Citigroup|Citibank|Citi
+V,Visa Inc.,Visa,Financials,Visa Inc
+MA,Mastercard Inc.,Mastercard,Financials,Mastercard
+PYPL,PayPal Holdings Inc.,PayPal,Financials,PayPal
+BA,Boeing Co.,Boeing,Industrials,Boeing
+XOM,Exxon Mobil Corp.,Exxon,Energy,Exxon|ExxonMobil
+PFE,Pfizer Inc.,Pfizer,Health Care,Pfizer

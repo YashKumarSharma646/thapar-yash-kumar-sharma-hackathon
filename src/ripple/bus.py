@@ -1,4 +1,4 @@
-"""Thin wrapper over Redis Streams: publish models, subscribe with consumer groups."""
+"""Thin wrapper over Redis Streams: publish models, consume batches with consumer groups."""
 
 from collections.abc import Iterator
 from typing import TypeVar
@@ -19,10 +19,24 @@ def publish(client: redis.Redis, stream: str, message: BaseModel, maxlen: int = 
     return client.xadd(stream, {"data": message.model_dump_json()}, maxlen=maxlen, approximate=True)
 
 
-def subscribe(
-    client: redis.Redis, stream: str, group: str, consumer: str, model: type[M], block_ms: int = 5000
-) -> Iterator[M]:
-    """Yield messages for a consumer group, acknowledging each after it is yielded."""
+def publish_many(client: redis.Redis, stream: str, messages: list[BaseModel], maxlen: int = 100_000) -> None:
+    pipe = client.pipeline(transaction=False)
+    for m in messages:
+        pipe.xadd(stream, {"data": m.model_dump_json()}, maxlen=maxlen, approximate=True)
+    pipe.execute()
+
+
+def consume_batches(
+    client: redis.Redis,
+    stream: str,
+    group: str,
+    consumer: str,
+    model: type[M],
+    batch_size: int = 64,
+    block_ms: int = 2000,
+) -> Iterator[list[M]]:
+    """Yield batches for a consumer group. A batch is acknowledged once the caller asks for the next one,
+    so a crash mid-batch leaves it pending for redelivery."""
     try:
         client.xgroup_create(stream, group, id="0", mkstream=True)
     except redis.ResponseError as e:
@@ -30,8 +44,9 @@ def subscribe(
             raise
 
     while True:
-        batches = client.xreadgroup(group, consumer, {stream: ">"}, count=32, block=block_ms)
-        for _, entries in batches or []:
-            for entry_id, fields in entries:
-                yield model.model_validate_json(fields["data"])
-                client.xack(stream, group, entry_id)
+        response = client.xreadgroup(group, consumer, {stream: ">"}, count=batch_size, block=block_ms)
+        entries = [entry for _, stream_entries in response or [] for entry in stream_entries]
+        if not entries:
+            continue
+        yield [model.model_validate_json(fields["data"]) for _, fields in entries]
+        client.xack(stream, group, *[entry_id for entry_id, _ in entries])
