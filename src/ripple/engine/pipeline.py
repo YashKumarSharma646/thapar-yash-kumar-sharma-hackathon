@@ -1,6 +1,7 @@
 """RiskEngine: RawDocument batch -> RiskSignal list. Pure logic, no I/O, so it is unit-testable."""
 
 from collections import Counter
+from datetime import datetime, timedelta
 from typing import Protocol
 
 from ripple.engine.entities import MARKET, EntityLinker
@@ -11,6 +12,7 @@ from ripple.schemas import EventType, Evidence, RawDocument, RiskSignal, SourceT
 
 # Market-wide themes still matter downstream (Module B) even when no company is named.
 MARKET_EVENTS = {EventType.GEOPOLITICAL, EventType.MACROECONOMIC, EventType.CREDIT_EVENT}
+REPLAY_RESET_GAP = timedelta(days=1)
 
 
 class Scorer(Protocol):
@@ -21,12 +23,21 @@ class RiskEngine:
     def __init__(self, sentiment: Scorer, linker: EntityLinker | None = None):
         self.sentiment = sentiment
         self.linker = linker or EntityLinker()
+        self.reset()
+
+    def reset(self) -> None:
         self.buzz = BuzzTracker()
         self.stats: Counter[str] = Counter()
+        self._clock: datetime | None = None
 
     def process(self, docs: list[RawDocument]) -> list[RiskSignal]:
         candidates = []
         for doc in docs:
+            # A replay restart sends the clock back in time: start a fresh session so stale
+            # attention history doesn't distort buzz scores.
+            if self._clock is not None and doc.published_at < self._clock - REPLAY_RESET_GAP:
+                self.reset()
+            self._clock = max(self._clock or doc.published_at, doc.published_at)
             self.stats["received"] += 1
             if doc.source == SourceType.SOCIAL and not keep_social(doc.text):
                 self.stats["filtered_noise"] += 1

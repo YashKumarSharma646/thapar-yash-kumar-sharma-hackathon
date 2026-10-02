@@ -27,7 +27,10 @@ RUN for i in 1 2 3 4 5; do \
         snapshot_download('ProsusAI/finbert', allow_patterns=['*.json', '*.txt', 'pytorch_model.bin'])" && break; \
       echo "FinBERT download attempt $i failed, retrying..."; sleep 5; \
     done && \
-    python -c "from transformers import AutoModelForSequenceClassification as M; M.from_pretrained('ProsusAI/finbert')"
+    python -c "from transformers import AutoModelForSequenceClassification as M; M.from_pretrained('ProsusAI/finbert', use_safetensors=False)" && \
+    # Transformers also fetches a bot-converted safetensors copy from a PR revision (~420 MB); keep only main.
+    python -c "from huggingface_hub import scan_cache_dir as s; c = s(); \
+      s().delete_revisions(*[r.commit_hash for repo in c.repos for r in repo.revisions if 'main' not in r.refs]).execute()"
 ENV HF_HUB_OFFLINE=1
 
 

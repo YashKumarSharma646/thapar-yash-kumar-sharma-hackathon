@@ -16,7 +16,7 @@ class SentimentModel:
         torch.set_num_threads(max(1, (os.cpu_count() or 2) - 1))
         self._torch = torch
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name).eval()
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_name, use_safetensors=False).eval()
         labels = {v.lower(): k for k, v in self.model.config.id2label.items()}
         self._pos, self._neg = labels["positive"], labels["negative"]
         self.batch_size = batch_size

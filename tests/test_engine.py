@@ -83,6 +83,14 @@ def test_impact_score_bounds_and_ordering():
     assert set(breakdown) >= {"severity", "sentiment", "buzz", "source_credibility"}
 
 
+def test_engine_resets_when_replay_restarts(linker):
+    engine = RiskEngine(FixedScorer(), linker)
+    engine.process([doc("Facebook revenue falls", ts=T0 + timedelta(days=d)) for d in range(5)])
+    assert engine.stats["received"] == 5
+    engine.process([doc("Facebook revenue falls", ts=T0)])  # clock jumps back 4 days
+    assert engine.stats["received"] == 1
+
+
 def test_pipeline_end_to_end(linker):
     engine = RiskEngine(FixedScorer(-0.8), linker)
     signals = engine.process(

@@ -27,8 +27,21 @@ docker compose up --build
 
 - Dashboard: http://localhost:8501
 - API docs: http://localhost:8000/docs
+- Signals file: `data/processed/signals.jsonl` (written on the host)
 
-No API keys or downloads are needed. The default replay mode runs on the samples in `data/sample/`.
+No API keys are needed. The first build downloads CPU PyTorch and the FinBERT weights (~1.2 GB) into the image; after that everything runs offline.
+
+**What you'll see:** the ingestor replays 15 Jul – 31 Aug 2018 news headlines and tweets (7,109 documents) on an accelerated clock (~10 minutes end to end). The dashboard updates every 3 seconds; watch Facebook (FB) around 25–26 Jul 2018, its record Q2 earnings crash.
+
+| Service | Port | Role |
+|---|---|---|
+| `ingestor` | – | Replays the two sources into Redis Streams |
+| `engine` | – | NLP risk engine: raw text → `RiskSignal` |
+| `api` | 8000 | REST: `/signals`, `/stats`, `/health` |
+| `dashboard` | 8501 | Streamlit live view |
+| `redis` | 6379 | Message bus (Redis Streams) |
+
+To replay again: `docker compose restart ingestor`. To change speed, set `REPLAY_SPEED` in `.env.example` (simulated seconds per real second).
 
 ## Local development (without Docker)
 
@@ -37,9 +50,12 @@ Requires Python 3.11+ and a running Redis.
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (macOS/Linux: source .venv/bin/activate)
-pip install -r requirements.txt
-pytest
+pip install -r requirements.txt -r requirements-engine.txt
+pytest                          # unit tests (no model download needed)
+python scripts/run_offline.py   # run the engine over the sample without Redis
 ```
+
+Rebuilding the sample from the raw Kaggle datasets (optional): `python scripts/download_data.py` then `python scripts/build_sample.py`.
 
 ## Repository structure
 
