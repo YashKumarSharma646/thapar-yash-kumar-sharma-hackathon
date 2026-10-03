@@ -16,9 +16,10 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Model weights (downloaded/exported by scripts; small ONNX may be committed via LFS later)
+# Model weights: only the distilled int8 ONNX model (~34 MB) is committed
 models/*
 !models/.gitkeep
+!models/ripple-nlp/
 
 # Notebook / IDE
 .ipynb_checkpoints/

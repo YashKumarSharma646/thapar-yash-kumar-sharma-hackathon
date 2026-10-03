@@ -29,7 +29,7 @@ docker compose up --build
 - API docs: http://localhost:8000/docs
 - Signals file: `data/processed/signals.jsonl` (written on the host)
 
-No API keys are needed. The first build downloads CPU PyTorch and the FinBERT weights (~1.2 GB) into the image; after that everything runs offline.
+No API keys are needed and nothing is downloaded at run time: the NLP model ships in the repo (`models/ripple-nlp/`, 34 MB int8 ONNX).
 
 **What you'll see:** the ingestor replays 15 Jul – 31 Aug 2018 news headlines and tweets (7,109 documents) on an accelerated clock (~10 minutes end to end). The dashboard updates every 3 seconds; watch Facebook (FB) around 25–26 Jul 2018, its record Q2 earnings crash.
 
@@ -51,11 +51,28 @@ Requires Python 3.11+ and a running Redis.
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (macOS/Linux: source .venv/bin/activate)
 pip install -r requirements.txt -r requirements-engine.txt
+pip install -r requirements-finbert.txt   # optional: baseline backend + export test
 pytest                          # unit tests (no model download needed)
 python scripts/run_offline.py   # run the engine over the sample without Redis
 ```
 
 Rebuilding the sample from the raw Kaggle datasets (optional): `python scripts/download_data.py` then `python scripts/build_sample.py`.
+
+## NLP model (Day 4: LLM-teacher distillation)
+
+The engine's sentiment, event type and severity come from one small multi-task model, distilled from an open LLM:
+
+1. **Teacher:** `Qwen/Qwen2.5-7B-Instruct` labelled 20.8k headlines and tweets (event, sentiment, severity 1–5) on a Colab L4 GPU.
+2. **Student:** `BAAI/bge-small-en-v1.5` (33M params) fine-tuned with three heads, exported to int8 ONNX. It runs at ~140–200 docs/s on a laptop CPU with no PyTorch.
+3. **Evaluation:** on the held-out replay window (4,941 docs, never trained on), agreement with the teacher:
+
+| | Day 2 baseline | Distilled student |
+|---|---|---|
+| Event type, macro-F1 | 0.57 (keyword rules) | **0.75** |
+| Sentiment, macro-F1 | 0.53 (FinBERT) | **0.77** |
+| Severity, Spearman ρ | – | **0.75** |
+
+Reproduce: `python scripts/build_label_corpus.py`, then run [`notebooks/04_label_and_distill.ipynb`](notebooks/04_label_and_distill.ipynb) on Colab (L4). Teacher labels: `data/labeling/teacher_labels.csv`. The baseline backend stays available via `NLP_BACKEND=rules`.
 
 ## Repository structure
 

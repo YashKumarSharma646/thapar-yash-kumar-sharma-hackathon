@@ -102,7 +102,8 @@ def event_mix_chart(df: pd.DataFrame) -> alt.Chart:
 def evidence_card(row: pd.Series) -> None:
     breakdown = row.evidence.get("impact_breakdown", {})
     st.markdown(f"**{row.entity}** · {row.event_type} · {status_label(row.impact_score)} · impact **{row.impact_score:.1f}**")
-    st.caption(f"{row.published_at:%d %b %Y %H:%M} · {row.source}")
+    model = row.evidence.get("model") or "rules+finbert"
+    st.caption(f"{row.published_at:%d %b %Y %H:%M} · {row.source} · analysed by {model}")
     st.write(row.headline)
     cols = st.columns(4)
     cols[0].metric("Sentiment", f"{row.sentiment_score:+.2f}")

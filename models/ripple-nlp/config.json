@@ -1,0 +1,46 @@
+{
+  "event_labels": [
+    "Geopolitical",
+    "Macroeconomic",
+    "Credit Event",
+    "Merger/Acquisition",
+    "Product Launch",
+    "Earnings",
+    "Regulatory/Legal",
+    "Operational",
+    "Other"
+  ],
+  "sentiment_labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "max_length": 96,
+  "pad_token_id": 0,
+  "backbone": "BAAI/bge-small-en-v1.5",
+  "teacher": "Qwen/Qwen2.5-7B-Instruct",
+  "train_docs": 14254,
+  "metrics": {
+    "eval_docs": 4941,
+    "event_macro_f1": {
+      "rules": 0.5658,
+      "student": 0.7522
+    },
+    "event_accuracy": {
+      "rules": 0.6132,
+      "student": 0.7719
+    },
+    "sentiment_macro_f1": {
+      "finbert": 0.5276,
+      "student": 0.7713
+    },
+    "sentiment_accuracy": {
+      "finbert": 0.5375,
+      "student": 0.7743
+    },
+    "severity_spearman": {
+      "student": 0.7453
+    },
+    "onnx_int8_event_agreement": 0.905
+  }
+}

@@ -1,3 +1,4 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.8.0+cpu
-transformers==4.56.2
+# Engine runtime: the distilled ONNX model (models/ripple-nlp/) needs only these.
+onnxruntime==1.30.0
+tokenizers==0.22.2
+numpy<3

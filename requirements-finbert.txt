@@ -1,0 +1,6 @@
+# Optional: Day 2 baseline backend (rules + FinBERT), the ONNX export test and the offline
+# baseline comparison. Not needed to run the system.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu
+transformers==4.56.2
+onnx
