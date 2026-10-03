@@ -13,8 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ripple.engine.analyzers import load_analyzer  # noqa: E402
 from ripple.engine.pipeline import RiskEngine  # noqa: E402
-from ripple.engine.sentiment import SentimentModel  # noqa: E402
 from ripple.ingestion.replay import load_documents  # noqa: E402
 
 
@@ -22,10 +22,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=ROOT / "data" / "processed" / "signals_offline.jsonl")
     parser.add_argument("--batch", type=int, default=64)
+    parser.add_argument("--backend", default="auto", choices=["auto", "onnx", "rules"])
     args = parser.parse_args()
 
     docs = load_documents()
-    engine = RiskEngine(SentimentModel())
+    engine = RiskEngine(load_analyzer(args.backend))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     start = time.perf_counter()
     with args.out.open("w", encoding="utf-8") as f:
@@ -34,7 +35,7 @@ def main() -> None:
                 f.write(s.model_dump_json() + "\n")
     elapsed = time.perf_counter() - start
     print(f"{len(docs):,} docs in {elapsed:.0f}s ({len(docs) / elapsed:.0f} docs/s) -> {args.out}")
-    print(dict(engine.stats))
+    print(engine.analyzer.name, dict(engine.stats))
 
 
 if __name__ == "__main__":

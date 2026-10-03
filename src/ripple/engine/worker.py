@@ -6,8 +6,8 @@ import socket
 
 from ripple.bus import consume_batches, get_client, publish_many
 from ripple.config import SIGNALS_JSONL, STREAM_RAW_TEXT, STREAM_SIGNALS
+from ripple.engine.analyzers import load_analyzer
 from ripple.engine.pipeline import RiskEngine
-from ripple.engine.sentiment import SentimentModel
 from ripple.schemas import RawDocument
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -16,7 +16,7 @@ log = logging.getLogger("ripple.engine")
 
 def main() -> None:
     log.info("Loading models...")
-    engine = RiskEngine(SentimentModel())
+    engine = RiskEngine(load_analyzer())
     client = get_client()
     SIGNALS_JSONL.parent.mkdir(parents=True, exist_ok=True)
     consumer = os.getenv("HOSTNAME", socket.gethostname())

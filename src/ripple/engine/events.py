@@ -1,7 +1,8 @@
 """Baseline event classifier: weighted keyword rules.
 
 Transparent and fast; it also produces the matched phrases shown on the evidence card.
-Day 4 replaces it with a distilled transformer, keeping the same interface.
+The distilled transformer (analyzers.OnnxAnalyzer) replaces it as the classifier when available;
+the rules then only supply evidence phrases.
 """
 
 import re
@@ -58,6 +59,12 @@ class EventResult:
     event_type: EventType
     confidence: float
     phrases: list[str]
+
+
+def phrases_for(text: str, event: EventType) -> list[str]:
+    """Rule phrases supporting a given event, used as evidence when a model makes the call."""
+    hits = [m.group(0).lower() for pattern, _ in _COMPILED.get(event, []) for m in pattern.finditer(text)]
+    return list(dict.fromkeys(hits))
 
 
 def classify_event(text: str) -> EventResult:

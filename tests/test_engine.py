@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from ripple.engine.analyzers import RuleAnalyzer
 from ripple.engine.entities import MARKET, EntityLinker
 from ripple.engine.events import classify_event
 from ripple.engine.impact import BuzzTracker, impact_score
@@ -84,7 +85,7 @@ def test_impact_score_bounds_and_ordering():
 
 
 def test_engine_resets_when_replay_restarts(linker):
-    engine = RiskEngine(FixedScorer(), linker)
+    engine = RiskEngine(RuleAnalyzer(FixedScorer()), linker)
     engine.process([doc("Facebook revenue falls", ts=T0 + timedelta(days=d)) for d in range(5)])
     assert engine.stats["received"] == 5
     engine.process([doc("Facebook revenue falls", ts=T0)])  # clock jumps back 4 days
@@ -92,7 +93,7 @@ def test_engine_resets_when_replay_restarts(linker):
 
 
 def test_pipeline_end_to_end(linker):
-    engine = RiskEngine(FixedScorer(-0.8), linker)
+    engine = RiskEngine(RuleAnalyzer(FixedScorer(-0.8)), linker)
     signals = engine.process(
         [
             doc("Facebook wipes $130 billion in market cap after Q2 revenue miss"),

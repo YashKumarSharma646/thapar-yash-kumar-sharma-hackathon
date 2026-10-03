@@ -45,6 +45,7 @@ class Evidence(BaseModel):
     key_phrases: list[str] = Field(default_factory=list)
     impact_breakdown: dict[str, float] = Field(default_factory=dict)
     source_urls: list[str] = Field(default_factory=list)
+    model: str = ""  # NLP backend that produced the sentiment and event
 
 
 class RiskSignal(BaseModel):
