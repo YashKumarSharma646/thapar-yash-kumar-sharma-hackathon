@@ -31,7 +31,7 @@ docker compose up --build
 
 No API keys are needed and nothing is downloaded at run time: the NLP model ships in the repo (`models/ripple-nlp/`, 34 MB int8 ONNX).
 
-**What you'll see:** the ingestor replays 15 Jul – 31 Aug 2018 news headlines and tweets (7,109 documents) on an accelerated clock (~10 minutes end to end). The dashboard updates every 3 seconds; watch Facebook (FB) around 25–26 Jul 2018, its record Q2 earnings crash.
+**What you'll see:** the ingestor replays 15 Jul – 31 Aug 2018 news headlines and tweets (8,556 documents) on an accelerated clock (~10 minutes end to end). The dashboard updates every 3 seconds; watch Facebook (FB) around 25–26 Jul 2018, its record Q2 earnings crash.
 
 | Service | Port | Role |
 |---|---|---|
@@ -73,6 +73,24 @@ The engine's sentiment, event type and severity come from one small multi-task m
 | Severity, Spearman ρ | – | **0.75** |
 
 Reproduce: `python scripts/build_label_corpus.py`, then run [`notebooks/04_label_and_distill.ipynb`](notebooks/04_label_and_distill.ipynb) on Colab (L4). Teacher labels: `data/labeling/teacher_labels.csv`. The baseline backend stays available via `NLP_BACKEND=rules`.
+
+## Impact calibration (Day 5)
+
+Impact (1–10) is calibrated against real price reactions, not hand-set weights. A logistic model estimates
+**P(material move)**, where a material move is a 2-day market-adjusted return of at least 2σ for that stock (Yahoo Finance prices, SPY as the market).
+Inputs are the model's severity, sentiment, event type, buzz and source; every input's log-odds contribution is shown on the evidence card.
+Impact ≥ 7, the stress-test trigger, means the top 3% of historical signals by predicted move probability.
+
+Fitted on 129k historical signals (2014–2020, replay window excluded) and tested on the replay window:
+
+| Replay window (7.4k signals) | Day 2 formula | Calibrated |
+|---|---|---|
+| Alert precision: impact ≥ 7 followed by a ≥ 2σ move | 19% | **42%** (base rate 10%) |
+| Stock-day ranking AUC | 0.647 | **0.664** |
+| Spearman with abs(abnormal move) | 0.106 | **0.147** |
+
+The Facebook Q2-miss headline (26 Jul 2018, −8.7σ) is the top signal of the replay.
+Reproduce: `python scripts/fetch_prices.py && python scripts/build_calibration_set.py && python scripts/calibrate_impact.py`.
 
 ## Repository structure
 

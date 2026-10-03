@@ -107,9 +107,17 @@ def evidence_card(row: pd.Series) -> None:
     st.write(row.headline)
     cols = st.columns(4)
     cols[0].metric("Sentiment", f"{row.sentiment_score:+.2f}")
-    cols[1].metric("Severity × confidence", f"{breakdown.get('severity', 0):.2f}")
-    cols[2].metric("Buzz (abnormal attention)", f"{breakdown.get('buzz', 0):.2f}")
-    cols[3].metric("Source credibility", f"{breakdown.get('source_credibility', 0):.2f}")
+    if "p_material_move" in breakdown:  # calibrated impact model
+        cols[1].metric("P(abnormal move ≥ 2σ)", f"{breakdown['p_material_move']:.0%}")
+        cols[2].metric("Severity (model)", f"{breakdown.get('severity', 0):.2f}")
+        cols[3].metric("Buzz (abnormal attention)", f"{breakdown.get('buzz', 0):.2f}")
+        drivers = {k.removeprefix("contrib_"): v for k, v in breakdown.items() if k.startswith("contrib_")}
+        st.caption("What drove the score (log-odds): " + " · ".join(
+            f"{k} **{v:+.2f}**" for k, v in sorted(drivers.items(), key=lambda kv: -abs(kv[1]))))
+    else:
+        cols[1].metric("Severity × confidence", f"{breakdown.get('severity', 0):.2f}")
+        cols[2].metric("Buzz (abnormal attention)", f"{breakdown.get('buzz', 0):.2f}")
+        cols[3].metric("Source credibility", f"{breakdown.get('source_credibility', 0):.2f}")
     phrases = row.evidence.get("key_phrases", [])
     if phrases:
         st.caption("Key phrases: " + " · ".join(f"`{p}`" for p in phrases))

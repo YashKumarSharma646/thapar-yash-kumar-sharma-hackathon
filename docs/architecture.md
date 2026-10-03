@@ -45,4 +45,4 @@ See [`src/ripple/schemas.py`](../src/ripple/schemas.py): `RawDocument` (ingestor
 | Event class | `engine/events.py` | Weighted keyword rules → 8 event types + confidence; matched phrases become evidence |
 | Impact (1–10) | `engine/impact.py` | 0.35·severity×confidence + 0.35·\|sentiment\| + 0.30·buzz, × source credibility. Buzz = 24h mentions vs trailing 7-day average |
 
-Upgrades: Day 4 replaces sentiment + event rules with a distilled multi-task model (ONNX); Day 5 calibrates impact against realised abnormal returns.
+Upgrades: Day 4 replaced sentiment + event rules with a distilled multi-task model (ONNX); Day 5 calibrated impact against realised abnormal returns (`models/impact_calibration.json`).

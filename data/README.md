@@ -15,7 +15,7 @@ Built by `python scripts/build_sample.py` from the raw sets; window **15 Jul –
 
 | File | Rows | Contents |
 |---|---|---|
-| `news_2018.csv` | 1,480 | De-duplicated headlines mentioning a tracked company or a macro/geopolitical theme |
+| `news_2018.csv` | 2,927 | De-duplicated headlines mentioning a tracked company or a macro/geopolitical theme |
 | `tweets_2018.csv` | 5,629 | 25% of finance-relevant tweets about tracked companies + 0.5% of spam/chatter (to exercise the noise filter) |
 
 `reference/companies.csv` defines the 30 tracked companies (ticker, sector, aliases).
@@ -23,6 +23,7 @@ Built by `python scripts/build_sample.py` from the raw sets; window **15 Jul –
 ### Data-quality notes
 - The tweet dataset's `*_DAY_RETURN` columns are wrong (Facebook shows +23% on 26 Jul 2018, the day it fell ~19%); prices are correct. Returns are recomputed from prices.
 - The news dataset's `stock` column is the ticker page a headline was listed on, not its subject. Entities are linked from the headline text.
+- `raw_analyst_ratings.csv` mixes timestamp formats; pandas' default date inference silently drops ~96% of its dates. Parse with `format="ISO8601"` (`scripts/build_sample.py: load_news`).
 - Only ~9% of company-tagged tweets in the window are finance-relevant; the rest is template spam and chatter.
 
 ## Sources

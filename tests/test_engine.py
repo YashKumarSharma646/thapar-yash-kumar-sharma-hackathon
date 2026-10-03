@@ -5,7 +5,7 @@ import pytest
 from ripple.engine.analyzers import RuleAnalyzer
 from ripple.engine.entities import MARKET, EntityLinker
 from ripple.engine.events import classify_event
-from ripple.engine.impact import BuzzTracker, impact_score
+from ripple.engine.impact import BuzzTracker, CalibratedImpact, impact_score
 from ripple.engine.pipeline import RiskEngine
 from ripple.engine.relevance import keep_social
 from ripple.schemas import EventType, RawDocument, SourceType
@@ -85,7 +85,7 @@ def test_impact_score_bounds_and_ordering():
 
 
 def test_engine_resets_when_replay_restarts(linker):
-    engine = RiskEngine(RuleAnalyzer(FixedScorer()), linker)
+    engine = RiskEngine(RuleAnalyzer(FixedScorer()), linker, impact=None)
     engine.process([doc("Facebook revenue falls", ts=T0 + timedelta(days=d)) for d in range(5)])
     assert engine.stats["received"] == 5
     engine.process([doc("Facebook revenue falls", ts=T0)])  # clock jumps back 4 days
@@ -93,7 +93,7 @@ def test_engine_resets_when_replay_restarts(linker):
 
 
 def test_pipeline_end_to_end(linker):
-    engine = RiskEngine(RuleAnalyzer(FixedScorer(-0.8)), linker)
+    engine = RiskEngine(RuleAnalyzer(FixedScorer(-0.8)), linker, impact=None)
     signals = engine.process(
         [
             doc("Facebook wipes $130 billion in market cap after Q2 revenue miss"),
@@ -107,3 +107,17 @@ def test_pipeline_end_to_end(linker):
     fb = signals[0]
     assert fb.sentiment_score == -0.8 and 1 <= fb.impact_score <= 10
     assert "Facebook" in fb.evidence.key_phrases
+
+
+def test_calibrated_impact_is_monotone_and_explained():
+    model = CalibratedImpact({"intercept": -3.0, "logit_lo": -3.5, "logit_hi": 0.5,
+                              "weights": {"severity": 2.0, "negative": 1.5, "positive": 0.5, "buzz": 1.0,
+                                          "social": -0.5, "event:Earnings": 0.8}})
+    calm, b_calm = model(EventType.OTHER, 0.1, 0.1, SourceType.SOCIAL, 0.1)
+    crash, b_crash = model(EventType.EARNINGS, -0.95, 0.9, SourceType.NEWS, 0.9)
+    assert 1 <= calm < crash <= 10
+    assert b_crash["p_material_move"] > b_calm["p_material_move"]
+    assert b_crash["contrib_event"] == 0.8 and b_crash["contrib_source"] == 0.0
+    # rules backend (no model severity) falls back to the event prior
+    _, b = model(EventType.CREDIT_EVENT, -0.5, 0.2, SourceType.NEWS, None)
+    assert b["severity"] == 0.9

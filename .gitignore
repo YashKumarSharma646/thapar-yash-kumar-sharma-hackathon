@@ -20,6 +20,7 @@ data/processed/*
 models/*
 !models/.gitkeep
 !models/ripple-nlp/
+!models/impact_calibration.json
 
 # Notebook / IDE
 .ipynb_checkpoints/

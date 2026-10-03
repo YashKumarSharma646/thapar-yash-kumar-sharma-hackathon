@@ -49,6 +49,8 @@ def train_news(cos: pd.DataFrame, n: int) -> pd.DataFrame:
         for name in ["raw_analyst_ratings.csv", "raw_partner_headlines.csv"]
     ]
     news = pd.concat(frames).dropna()
+    # Kept as used for the committed Day 4 corpus: this parse loses most raw_analyst_ratings dates (see
+    # build_sample.load_news). Those rows stay in the pool; eval texts are still excluded below by text.
     news["date"] = pd.to_datetime(news.date, errors="coerce", utc=True).dt.tz_localize(None)
     news = news[~news.date.between(START, f"{END} 23:59")]
     news["text"] = news.headline.str.strip()

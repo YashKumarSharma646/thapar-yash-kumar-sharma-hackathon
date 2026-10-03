@@ -50,13 +50,22 @@ def spread_time(day: pd.Timestamp, key: str) -> pd.Timestamp:
     return day + pd.Timedelta(hours=7, minutes=minutes)
 
 
-def build_news(cos: pd.DataFrame) -> pd.DataFrame:
+def load_news() -> pd.DataFrame:
+    """Both raw news files, timestamps parsed to naive UTC.
+
+    format="ISO8601" matters: the files mix "2020-06-05 10:30:54-04:00" and "2014-06-11 00:00:00", and
+    pandas' default inference silently turns ~96% of raw_analyst_ratings dates into NaT.
+    """
     frames = []
     for name in ["raw_analyst_ratings.csv", "raw_partner_headlines.csv"]:
         df = pd.read_csv(RAW / "stock_news" / name, usecols=["headline", "url", "publisher", "date"])
-        df["date"] = pd.to_datetime(df["date"], errors="coerce", utc=True).dt.tz_localize(None)
+        df["date"] = pd.to_datetime(df["date"], errors="coerce", utc=True, format="ISO8601").dt.tz_localize(None)
         frames.append(df)
-    news = pd.concat(frames).dropna(subset=["headline", "date"])
+    return pd.concat(frames).dropna(subset=["headline", "date"])
+
+
+def build_news(cos: pd.DataFrame) -> pd.DataFrame:
+    news = load_news()
     news = news[news.date.between(START, f"{END} 23:59")]
     news["headline"] = news.headline.str.strip()
     news = news.sort_values("date").drop_duplicates(subset=["headline"])

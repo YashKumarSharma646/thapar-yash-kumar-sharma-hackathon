@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from ripple.engine.analyzers import Analyzer
 from ripple.engine.entities import MARKET, EntityLinker
-from ripple.engine.impact import BuzzTracker, impact_score
+from ripple.engine.impact import BuzzTracker, CalibratedImpact, impact_score
 from ripple.engine.relevance import keep_social
 from ripple.schemas import EventType, Evidence, RawDocument, RiskSignal, SourceType
 
@@ -15,8 +15,12 @@ REPLAY_RESET_GAP = timedelta(days=1)
 
 
 class RiskEngine:
-    def __init__(self, analyzer: Analyzer, linker: EntityLinker | None = None):
+    def __init__(
+        self, analyzer: Analyzer, linker: EntityLinker | None = None, impact: CalibratedImpact | None | str = "auto"
+    ):
         self.analyzer = analyzer
+        # "auto": use the calibrated impact model when models/impact_calibration.json exists.
+        self.impact = CalibratedImpact.load() if impact == "auto" else impact
         self.linker = linker or EntityLinker()
         self.reset()
 
@@ -54,9 +58,16 @@ class RiskEngine:
                 continue
             for ticker in tickers:
                 buzz = self.buzz.observe(ticker, doc.published_at)
-                impact, breakdown = impact_score(
-                    event.event_type, event.confidence, analysis.sentiment, buzz, doc.source
-                )
+                if self.impact:
+                    impact, breakdown = self.impact(
+                        event.event_type, analysis.sentiment, buzz, doc.source, analysis.severity
+                    )
+                else:
+                    impact, breakdown = impact_score(
+                        event.event_type, event.confidence, analysis.sentiment, buzz, doc.source
+                    )
+                if analysis.severity is not None:
+                    breakdown["model_severity"] = analysis.severity
                 signals.append(
                     RiskSignal(
                         doc_id=doc.doc_id,
