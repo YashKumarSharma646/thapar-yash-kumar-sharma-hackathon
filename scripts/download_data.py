@@ -13,8 +13,6 @@ from pathlib import Path
 RAW_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
 
 DATASETS = {
-    # Sentiment labels (Financial PhraseBank derivative): evaluation / fine-tuning
-    "financial_news_sentiment": "ankurzing/sentiment-analysis-for-financial-news",
     # Stock tweets with returns: social source for replay + impact calibration
     "stock_tweets": "thedevastator/tweet-sentiment-s-impact-on-stock-returns",
     # Dated, ticker-tagged news headlines: news source for replay + impact calibration

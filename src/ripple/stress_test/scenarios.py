@@ -31,6 +31,11 @@ COMPANY_SHOCKS = {
     EventType.PRODUCT_LAUNCH: (1.0, 10),
     EventType.OTHER: (1.0, 20),
 }
+# Geopolitical and credit shocks that hit a named region replay the episode that fits it: emerging markets
+# with fragile currencies get the currency/sovereign crisis, China and Europe the tariff war.
+REGION_TEMPLATE = {"Turkey": "em_currency_crisis", "India": "em_currency_crisis", "LatAm": "em_currency_crisis",
+                   "China": "trade_war", "Europe": "trade_war"}
+REGION_CCY = {"Turkey": "TRY", "China": "CNY", "India": "INR", "Europe": "EUR"}
 MARKET_TEMPLATE = {
     EventType.GEOPOLITICAL: "trade_war",
     EventType.MACROECONOMIC: "rates_shock",
@@ -65,6 +70,8 @@ def build_scenario(signal: RiskSignal, library: dict | None = None) -> Scenario:
     m = severity_multiplier(signal.impact_score)
     region = REGION_NAME.get(signal.entity) or detect_region(signal.headline)
     template = MARKET_TEMPLATE.get(signal.event_type)
+    if template and signal.event_type != EventType.MACROECONOMIC and region in REGION_TEMPLATE:
+        template = REGION_TEMPLATE[region]
     # A Credit Event about a named company is idiosyncratic; only a sovereign/EM one replays the crisis.
     if signal.event_type == EventType.CREDIT_EVENT and is_company(signal.entity) and region not in EM_REGIONS:
         template = None
@@ -86,6 +93,12 @@ def build_scenario(signal: RiskSignal, library: dict | None = None) -> Scenario:
         if target and region_bp:
             scenario.spreads_bp[f"region:{target}"] = region_bp * m
             if target != ep["affected_region"]:
+                # The crisis currency's move goes to the target region's currency (LatAm book is USD-only).
+                origin_ccy, target_ccy = REGION_CCY.get(ep["affected_region"]), REGION_CCY.get(target)
+                if origin_ccy:
+                    crisis_move = scenario.fx.pop(origin_ccy, 0.0)
+                    if target_ccy:
+                        scenario.fx[target_ccy] = crisis_move
                 scenario.assumptions.append(f"Episode re-targeted from {ep['affected_region']} to {target} (named in the headline)")
     else:
         scenario = Scenario(

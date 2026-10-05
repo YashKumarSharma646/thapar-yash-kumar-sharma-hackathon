@@ -2,47 +2,59 @@
 
 ```mermaid
 flowchart LR
-    subgraph Sources
-        N[News: Kaggle replay / GDELT live]
-        S[Social: Kaggle stock tweets replay]
+    subgraph Sources["Sources (replayed, 15 Jul – 31 Aug 2018)"]
+        N[News headlines<br/>Kaggle, CC0]
+        S[Stock tweets<br/>Kaggle, CC0]
     end
     N --> I[Ingestor]
     S --> I
     I -- RawDocument --> R1[(Redis Stream<br/>raw_text)]
-    R1 --> E[NLP Risk Engine<br/>noise filter · entity linking<br/>sentiment · event class · impact<br/>evidence card]
+    R1 --> E[NLP Risk Engine<br/>noise filter · entity / region linking<br/>distilled ONNX model: event, sentiment, severity<br/>calibrated impact · evidence card]
     E -- RiskSignal --> R2[(Redis Stream<br/>signals)]
     E --> F[signals.jsonl]
+    R2 --> B[Module B: stress_test<br/>impact ≥ 7 → scenario → revalue book<br/>P&L · EL · RWA · CET1]
+    B -- StressResult --> R3[(Redis Stream<br/>stress_results)]
+    B --> G[stress_results.jsonl]
     R2 --> API[FastAPI]
-    R2 --> B[Module B<br/>Stress Testing]
-    R2 -.stretch.-> A[Module A<br/>Index Rebalancer]
-    API --> D[Streamlit Dashboard]
-    B --> D
-    A -.-> D
+    R3 --> API
+    API --> D[Streamlit dashboard<br/>signals · stress tests · what-if]
 ```
+
+Offline (not part of the running stack): Colab notebook that distils an LLM teacher into the ONNX model (Day 4),
+and scripts that calibrate impact against realised price moves (Day 5) and build the stress-scenario library.
 
 ## Services (docker-compose)
 
-| Service | Command | Status |
+| Service | Command | Role |
 |---|---|---|
-| redis | `redis:7-alpine` | ✅ |
-| api | `uvicorn ripple.api.main:app` | ✅ `/health`, `/signals`, `/stats` |
-| dashboard | `streamlit run src/ripple/dashboard/app.py` | ✅ live signals, sentiment, event mix, alerts + evidence |
-| ingestor | `python -m ripple.ingestion.run` | ✅ replay mode |
-| engine | `python -m ripple.engine.worker` | ✅ baseline (FinBERT + rules) |
-| stress_test | `python -m ripple.stress_test.worker` | Day 6–7 |
+| redis | `redis:7-alpine` | Message bus (Redis Streams with consumer groups) |
+| ingestor | `python -m ripple.ingestion.run` | Replays the two sources on an accelerated clock; a restart starts a clean session |
+| engine | `python -m ripple.engine.worker` | `RawDocument` → `RiskSignal` |
+| stress_test | `python -m ripple.stress_test.worker` | `RiskSignal` (impact ≥ 7) → `StressResult` |
+| api | `uvicorn ripple.api.main:app` | `/signals`, `/stress`, `/portfolio`, `/stats`, `/health` |
+| dashboard | `streamlit run src/ripple/dashboard/app.py` | Live signals, stress tests, what-if scenarios |
 
 ## Data contracts
 
-See [`src/ripple/schemas.py`](../src/ripple/schemas.py): `RawDocument` (ingestor → engine) and `RiskSignal` (engine → consumers).
+[`src/ripple/schemas.py`](../src/ripple/schemas.py): `RawDocument` (ingestor → engine), `RiskSignal` (engine →
+consumers), `StressResult` (Module B → API/dashboard).
 
-## Engine stages (baseline, Day 2)
+## Engine stages
 
 | Stage | Module | How |
 |---|---|---|
-| Noise filter | `engine/relevance.py` | Drops template spam and social posts with no financial terms (~91% of company-tagged tweets in the 2018 window) |
-| Entity linking | `engine/entities.py` | Aliases + `$cashtags` from the text (the dataset's ticker column is unreliable) → 30-company universe, or `MARKET` for macro/geopolitical news |
-| Sentiment | `engine/sentiment.py` | FinBERT (`ProsusAI/finbert`): P(positive) − P(negative) ∈ [−1, 1] |
-| Event class | `engine/events.py` | Weighted keyword rules → 8 event types + confidence; matched phrases become evidence |
-| Impact (1–10) | `engine/impact.py` | 0.35·severity×confidence + 0.35·\|sentiment\| + 0.30·buzz, × source credibility. Buzz = 24h mentions vs trailing 7-day average |
+| Noise filter | `engine/relevance.py` | Drops template spam and social posts with no financial terms (~91% of company-tagged tweets) |
+| Entity linking | `engine/entities.py`, `engine/regions.py` | Aliases and `$cashtags` → 30 tracked companies (never the dataset's unreliable ticker column). Market-wide news → the region it names (TURKEY, CHINA, EUROPE, INDIA, LATAM) or MARKET |
+| Event, sentiment, severity | `engine/analyzers.py` | One distilled multi-task model (bge-small, int8 ONNX) trained on Qwen2.5-7B labels. Fallback: keyword rules + FinBERT (`NLP_BACKEND=rules`) |
+| Buzz | `engine/impact.py` | Mentions in the last 24h vs the entity's trailing 7-day average, with a warm-up at replay start |
+| Impact (1–10) | `engine/impact.py` | Logistic P(2-day abnormal move ≥ 2σ) from severity, sentiment, event, buzz and source; ≥ 7 = top 3% of history |
+| Evidence | `schemas.Evidence` | Key phrases, each driver's contribution, source URL, model used |
 
-Upgrades: Day 4 replaced sentiment + event rules with a distilled multi-task model (ONNX); Day 5 calibrated impact against realised abnormal returns (`models/impact_calibration.json`).
+## Module B
+
+| Step | Module | How |
+|---|---|---|
+| Trigger | `stress_test/worker.py` | Impact ≥ 7; one test per scenario and target per 12h of simulated time |
+| Scenario | `stress_test/scenarios.py` | Event type → historical episode (trade war 2019, lira crisis 2018, taper tantrum 2013) or issuer-specific shock; scaled by impact; re-targeted to the region in the headline |
+| Revaluation | `stress_test/engine.py` | Duration/convexity, DV01, spread DV01, delta, FX translation; loan EL with spread-stressed PDs |
+| Capital | `stress_test/engine.py` | Basel IRB credit RWA; CET1 ratio before/after |

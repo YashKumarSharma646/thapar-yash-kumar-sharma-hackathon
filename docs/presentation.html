@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ripple: NLP risk signals and event-driven stress testing</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root {
+    --ink: #0b0b0b; --ink2: #52514e; --muted: #898781; --grid: #e1e0d9; --surface: #fcfcfb; --panel: #f4f3ef;
+    --blue: #2a78d6; --red: #e34948; --green: #1baf7a; --amber: #eda100; --violet: #4a3aa7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink);
+    font-family: "Segoe UI", "Inter", system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide { width: 1280px; height: 720px; padding: 52px 64px 40px; position: relative; overflow: hidden;
+    page-break-after: always; break-after: page; display: flex; flex-direction: column; }
+  .slide:last-child { page-break-after: auto; }
+  .kicker { font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--blue); font-weight: 600; }
+  h1 { font-size: 44px; line-height: 1.1; margin: 6px 0 10px; letter-spacing: -.01em; }
+  h2 { font-size: 32px; line-height: 1.15; margin: 6px 0 18px; letter-spacing: -.01em; }
+  h3 { font-size: 17px; margin: 0 0 8px; }
+  p, li { font-size: 16px; line-height: 1.45; color: var(--ink2); margin: 0 0 8px; }
+  ul { margin: 0; padding-left: 20px; }
+  b, strong { color: var(--ink); }
+  .footer { position: absolute; bottom: 18px; left: 64px; right: 64px; display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; flex: 1; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .card { background: var(--panel); border-radius: 10px; padding: 16px 18px; }
+  .stat .v { font-size: 34px; font-weight: 650; letter-spacing: -.02em; color: var(--ink); }
+  .stat .l { font-size: 13px; color: var(--ink2); margin-top: 2px; line-height: 1.35; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em;
+    border-bottom: 1px solid var(--grid); padding: 6px 8px; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--grid); color: var(--ink2); vertical-align: top; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td b { color: var(--ink); }
+  .loss { color: var(--red); font-weight: 600; }
+  .gain { color: var(--blue); font-weight: 600; }
+  .muted { color: var(--muted); }
+  .flow { display: flex; align-items: stretch; gap: 10px; margin: 6px 0 18px; }
+  .node { flex: 1; background: var(--panel); border-radius: 10px; padding: 12px 12px; border-top: 3px solid var(--blue); }
+  .node h3 { font-size: 15px; margin-bottom: 4px; }
+  .node p { font-size: 12.5px; line-height: 1.35; margin: 0; }
+  .node.b { border-top-color: var(--violet); }
+  .arrow { align-self: center; color: var(--muted); font-size: 22px; }
+  .bar { display: grid; grid-template-columns: 210px 1fr 54px; align-items: center; gap: 10px; margin: 7px 0; font-size: 14px; color: var(--ink2); }
+  .track { background: var(--grid); height: 14px; border-radius: 0 4px 4px 0; position: relative; }
+  .fill { height: 14px; border-radius: 0 4px 4px 0; }
+  .val { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+  .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--ink2); margin-bottom: 4px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .pill { display: inline-block; background: #e8f0fb; color: var(--blue); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600; margin-right: 6px; }
+  .quote { border-left: 3px solid var(--blue); padding: 6px 12px; background: var(--panel); border-radius: 0 8px 8px 0; font-size: 15px; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- 1 · Title -->
+<section class="slide">
+  <div class="kicker">S&amp;P Global × Crisil Campus Hackathon 2026 · Case study</div>
+  <h1 style="font-size:64px;margin-top:70px">Ripple</h1>
+  <p style="font-size:24px;color:var(--ink);max-width:980px;line-height:1.35">An NLP risk engine that turns news and social posts into calibrated risk signals,
+    and stress-tests a wholesale banking book the moment a high-impact event breaks.</p>
+  <div class="grid4" style="margin-top:44px">
+    <div class="card stat"><div class="v">0.75</div><div class="l">event macro-F1 of the distilled model, vs 0.57 for keyword rules</div></div>
+    <div class="card stat"><div class="v">{{ALERT_PREC}}</div><div class="l">of impact ≥ 7 alerts followed by a ≥ 2σ abnormal price move (base rate {{BASE_RATE}})</div></div>
+    <div class="card stat"><div class="v">{{N_STRESS}}</div><div class="l">automatic stress tests in the 7-week replay; worst: {{WORST_PNL}}, CET1 to {{WORST_CET1}}</div></div>
+    <div class="card stat"><div class="v">1 cmd</div><div class="l"><code>docker compose up</code>: six services, offline, no API keys</div></div>
+  </div>
+  <div class="footer"><span>Yash Kumar Sharma · Thapar Institute of Engineering and Technology</span><span>github.com/YashKumarSharma646/thapar-yash-kumar-sharma-hackathon</span></div>
+</section>
+
+<!-- 2 · Architecture -->
+<section class="slide">
+  <div class="kicker">Architecture</div>
+  <h2>Six services on an event stream, reproducible end to end</h2>
+  <div class="flow">
+    <div class="node"><h3>Sources</h3><p>8.6k news headlines and tweets, 15 Jul – 31 Aug 2018 (Kaggle, CC0), replayed on an accelerated clock</p></div>
+    <div class="arrow">→</div>
+    <div class="node"><h3>Ingestor</h3><p>Publishes <code>RawDocument</code> to a Redis Stream</p></div>
+    <div class="arrow">→</div>
+    <div class="node"><h3>NLP risk engine</h3><p>Noise filter · entity and region linking · distilled ONNX model · calibrated impact · evidence card</p></div>
+    <div class="arrow">→</div>
+    <div class="node b"><h3>Module B</h3><p>Impact ≥ 7 → scenario → revalue the book → P&amp;L, EL, RWA, CET1</p></div>
+    <div class="arrow">→</div>
+    <div class="node"><h3>API + dashboard</h3><p>FastAPI and Streamlit: signals, stress tests, what-if</p></div>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3>Structured output</h3><p><code>RiskSignal</code>: entity, sentiment (−1…1), event type (9 classes), impact (1–10), and an evidence card with key phrases and each driver's contribution. Delivered over Redis Streams, REST and JSONL.</p></div>
+    <div class="card"><h3>Built for a CPU laptop</h3><p>The engine image has no PyTorch: one 34 MB int8 ONNX model, ~140–200 docs/s. Image size 3.0 → 1.1 GB, 5.7× faster than the FinBERT baseline.</p></div>
+    <div class="card"><h3>Engineering</h3><p>Consumer groups with at-least-once delivery, replay restarts start a clean session, 30+ unit tests including an ONNX export round-trip that guards the Colab → Docker hand-off.</p></div>
+  </div>
+  <div class="footer"><span>Ripple</span><span>2 / 7</span></div>
+</section>
+
+<!-- 3 · NLP -->
+<section class="slide">
+  <div class="kicker">Core challenge: the NLP risk engine</div>
+  <h2>A 7B LLM's judgement, distilled into a 33M model that runs on CPU</h2>
+  <div class="grid2">
+    <div>
+      <p><b>Teacher:</b> Qwen2.5-7B-Instruct (open weights) labelled 20.8k headlines and tweets with event type, sentiment and severity on a Colab L4 GPU.</p>
+      <p><b>Student:</b> bge-small (33M parameters) fine-tuned with three heads, exported to int8 ONNX.</p>
+      <p><b>Honest evaluation:</b> the demo window (4,941 docs) was held out of training. Scores are agreement with the teacher, not human labels.</p>
+      <div style="margin-top:16px" class="legend"><span><span class="sw" style="background:var(--grid)"></span>Day 2 baseline</span><span><span class="sw" style="background:var(--blue)"></span>Distilled model</span></div>
+      <div class="bar"><span>Event type, macro-F1 · rules</span><div class="track"><div class="fill" style="width:57%;background:#c3c2b7"></div></div><span class="val">0.57</span></div>
+      <div class="bar"><span>Event type · distilled</span><div class="track"><div class="fill" style="width:75%;background:var(--blue)"></div></div><span class="val">0.75</span></div>
+      <div class="bar"><span>Sentiment, macro-F1 · FinBERT</span><div class="track"><div class="fill" style="width:53%;background:#c3c2b7"></div></div><span class="val">0.53</span></div>
+      <div class="bar"><span>Sentiment · distilled</span><div class="track"><div class="fill" style="width:77%;background:var(--blue)"></div></div><span class="val">0.77</span></div>
+    </div>
+    <div>
+      <h3>Data traps found and fixed</h3>
+      <table>
+        <tr><td><b>91%</b> of company-tagged tweets are spam or chatter</td><td>Noise filter turns a buried signal into a clear spike on Facebook's crash day</td></tr>
+        <tr><td>The news set's ticker column is <b>not the subject</b></td><td>"Facebook's Dismal Q2" was tagged ADI and BUD; entities are linked from the text</td></tr>
+        <tr><td>The tweet set's returns are <b>wrong</b></td><td>+23% for Facebook on its −19% day; returns recomputed from prices</td></tr>
+        <tr><td>Mixed date formats silently dropped <b>96%</b> of one file's dates</td><td>Found during calibration; the demo now has twice the news</td></tr>
+        <tr><td>Market news named a region but scored against the S&amp;P 500</td><td>Region entities (Turkey, China, …) with their own buzz and market</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="footer"><span>Ripple</span><span>3 / 7</span></div>
+</section>
+
+<!-- 4 · Impact -->
+<section class="slide">
+  <div class="kicker">Impact score</div>
+  <h2>Impact is calibrated to what markets actually did</h2>
+  <div class="grid2">
+    <div>
+      <p>Impact estimates <b>P(material move)</b>: a 2-day market-adjusted return of at least 2σ for that stock or region. A logistic model, fitted on {{N_CALIB}} historical signals (2014–2020, demo window excluded), using severity, sentiment, event type, buzz and source.</p>
+      <p><b>Impact ≥ 7</b>, the stress-test trigger, means the top 3% of historical signals by predicted move probability.</p>
+      <p>Every signal shows its drivers in log-odds:</p>
+      <div class="quote">Facebook (FB) Q2 Earnings Miss, Shares Fall on Dim Outlook · impact {{FB_IMPACT}} · P(move) {{FB_P}}<br>
+        <span class="muted" style="font-size:13.5px">{{FB_DRIVERS}}</span></div>
+      <p style="margin-top:10px">Finding: sentiment adds almost nothing to <i>how big</i> the move is; it sets the <i>direction</i>, which Module B uses.</p>
+    </div>
+    <div>
+      <h3>Test on the held-out demo window</h3>
+      <table>
+        <tr><th></th><th class="num">Hand-set formula</th><th class="num">Calibrated</th></tr>
+        <tr><td>Alert precision (impact ≥ 7 → ≥ 2σ move)</td><td class="num">{{PREC_BASE}}</td><td class="num"><b>{{ALERT_PREC}}</b></td></tr>
+        <tr><td>Stock-day ranking AUC</td><td class="num">{{AUC_BASE}}</td><td class="num"><b>{{AUC_CAL}}</b></td></tr>
+        <tr><td>Spearman with |abnormal move|</td><td class="num">{{SP_BASE}}</td><td class="num"><b>{{SP_CAL}}</b></td></tr>
+        <tr><td>Base rate of ≥ 2σ moves</td><td class="num" colspan="2">{{BASE_RATE}}</td></tr>
+      </table>
+      <p style="margin-top:12px" class="muted">Predicting price moves from headlines alone is hard; an AUC in the mid-0.6s is a modest, honest result. The useful number is alert precision: about {{LIFT}}× the base rate.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Ripple</span><span>4 / 7</span></div>
+</section>
+
+<!-- 5 · Module B -->
+<section class="slide">
+  <div class="kicker">Module B: strategic portfolio stress testing</div>
+  <h2>High-impact events trigger a revaluation of a wholesale book</h2>
+  <div class="grid2">
+    <div>
+      <p><b>Book:</b> 97 positions, $12.6bn: loans to 51 borrowers (the 30 tracked companies plus corporates in Turkey, China, Europe, India and LatAm), corporate and sovereign bonds, rate swaps, FX forwards, CDS, equity swaps. Synthetic and seeded: the brief's retail transaction data does not describe a wholesale book.</p>
+      <p><b>Scenarios measured from real episodes</b> (Yahoo Finance), scaled by impact (×40% at 7, full episode at 10):</p>
+      <table>
+        <tr><th>Signal</th><th>Replays</th><th>Key shocks</th></tr>
+        <tr><td>Geopolitical</td><td>Trade war, May 2019</td><td>SPY −4.5%, CNY −1.3%, HY +48bp</td></tr>
+        <tr><td>Sovereign / EM credit</td><td>Lira crisis, Aug 2018</td><td>TRY −28%, EM +43bp</td></tr>
+        <tr><td>Macroeconomic</td><td>Taper tantrum, 2013</td><td>10y +92bp, EM +115bp</td></tr>
+        <tr><td>Company event</td><td>Issuer-specific</td><td>−k·σ of that stock, spread +10–400bp</td></tr>
+      </table>
+      <p style="margin-top:10px"><b>Pricing:</b> duration and convexity, DV01, spread DV01, delta, FX translation; loan EL with spread-stressed PDs; <b>Basel IRB</b> RWA and CET1.</p>
+    </div>
+    <div>
+      <h3>Full-severity results (impact 10)</h3>
+      <table>
+        <tr><th>Event</th><th class="num">P&amp;L</th><th class="num">CET1</th></tr>
+        {{SCENARIO_ROWS}}
+      </table>
+      <p style="margin-top:12px">Hedges behave: in the lira scenario the short-TRY forward offsets the FX loss on TRY loans; in the rates shock the pay-fixed swap offsets bond losses.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Ripple</span><span>5 / 7</span></div>
+</section>
+
+<!-- 6 · Demo results -->
+<section class="slide">
+  <div class="kicker">Live demo: Jul – Aug 2018 replayed</div>
+  <h2>{{DEMO_HEADLINE}}</h2>
+  <div class="grid4" style="margin-bottom:20px">
+    <div class="card stat"><div class="v">{{N_DOCS}}</div><div class="l">documents ingested; {{NOISE}} of social posts filtered as noise</div></div>
+    <div class="card stat"><div class="v">{{N_SIGNALS}}</div><div class="l">risk signals; {{N_ALERTS}} high-impact (≥ 7)</div></div>
+    <div class="card stat"><div class="v">{{N_STRESS}}</div><div class="l">stress tests triggered automatically</div></div>
+    <div class="card stat"><div class="v">{{WORST_CET1}}</div><div class="l">lowest stressed CET1 ratio (from 13.0%)</div></div>
+  </div>
+  <table>
+    <tr><th>Time (2018)</th><th>Trigger headline</th><th>Entity · event</th><th class="num">Impact</th><th>Scenario</th><th class="num">P&amp;L</th><th class="num">CET1</th></tr>
+    {{TIMELINE_ROWS}}
+  </table>
+  <div class="footer"><span>Ripple</span><span>6 / 7</span></div>
+</section>
+
+<!-- 7 · Limits and next -->
+<section class="slide">
+  <div class="kicker">Challenges, limitations and next steps</div>
+  <h2>What we would tell a risk committee</h2>
+  <div class="grid2">
+    <div>
+      <h3>Limitations, stated plainly</h3>
+      <ul>
+        <li>NLP scores measure agreement with an LLM teacher, not human analysts; a human-labelled test set is the next step.</li>
+        <li>Impact predicts move size modestly (AUC in the mid-0.6s); it is a triage signal, not a trading signal.</li>
+        <li>The portfolio is synthetic; regional CDS widening is assumed where free data does not exist.</li>
+        <li>Pricing is first-order (sensitivities), CET1 covers credit RWA only, losses are pre-tax.</li>
+        <li>Replay of 2018 data, not a live feed.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Next steps</h3>
+      <ul>
+        <li>Live ingestion (GDELT, RSS) behind the same <code>RawDocument</code> contract.</li>
+        <li>Reverse stress test: find the smallest scenario that breaches a CET1 floor.</li>
+        <li>Rating-migration matrices instead of PD scaling; full revaluation for options.</li>
+        <li>Module A: feed signals into an ESG/risk-tilted index rebalancer.</li>
+        <li>Human-in-the-loop: analysts confirm or reject alerts, and the labels retrain the student.</li>
+      </ul>
+      <div class="card" style="margin-top:18px"><p style="margin:0">Everything here is open source and reproducible: <b>docker compose up</b> runs the full demo offline; scripts rebuild every dataset, label, model and calibration from public data.</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>Ripple</span><span>7 / 7</span></div>
+</section>
+
+</body>
+</html>

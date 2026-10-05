@@ -1,49 +1,49 @@
 {
-  "intercept": -3.4842643480855626,
+  "intercept": -3.411981850013001,
   "weights": {
-    "severity": 1.4811965474992541,
-    "negative": 0.01586987853486039,
-    "positive": 0.09141846114180638,
-    "severity_x_sentiment": -0.02332476680011034,
-    "buzz": 3.269723284800219,
-    "social": 0.5811486789847706,
-    "social_x_buzz": -3.5117747215923654,
-    "social_x_severity": 3.59664543832931,
-    "social_x_negative": -1.3533066351709873,
-    "event:Geopolitical": -0.5343009305983618,
-    "event:Macroeconomic": -0.32616861143418147,
-    "event:Credit Event": -1.3741626407383578,
-    "event:Merger/Acquisition": -0.24321040820049586,
-    "event:Product Launch": -0.8147779794521024,
-    "event:Earnings": 0.7619412865053993,
-    "event:Regulatory/Legal": -0.27569859935096935,
-    "event:Operational": -0.2860128091014297
+    "severity": 1.3799281480243681,
+    "negative": 0.018792835941477896,
+    "positive": 0.08826507607395519,
+    "severity_x_sentiment": 0.06623125713550905,
+    "buzz": 3.09101089279903,
+    "social": 0.5221667473263529,
+    "social_x_buzz": -3.3418701857112465,
+    "social_x_severity": 3.5859673405258214,
+    "social_x_negative": -1.324915553845814,
+    "event:Geopolitical": -0.679034047293999,
+    "event:Macroeconomic": -0.3682542523893516,
+    "event:Credit Event": -1.399118958311935,
+    "event:Merger/Acquisition": -0.22887529748941965,
+    "event:Product Launch": -0.8153725600186927,
+    "event:Earnings": 0.7781605570839801,
+    "event:Regulatory/Legal": -0.28405249351020734,
+    "event:Operational": -0.3376196842312188
   },
-  "logit_lo": -2.9664769192766793,
-  "logit_hi": 0.4266495010793876,
+  "logit_lo": -2.9717041198159664,
+  "logit_hi": 0.42105281602805444,
   "metrics": {
     "fit": {
       "signals": 128962,
       "C": 10.0,
-      "validation_auc": 0.6559
+      "validation_auc": 0.6553
     },
     "test_replay_window": {
       "signals": 7392,
       "baseline": {
-        "auc_signal": 0.6332,
-        "auc_stock_day": 0.6469,
-        "spearman_abs_z": 0.1063,
-        "alerts_share": 0.0299,
-        "alert_precision": 0.19,
-        "base_rate": 0.1024
+        "auc_signal": 0.657,
+        "auc_stock_day": 0.6452,
+        "spearman_abs_z": 0.1438,
+        "alerts_share": 0.0206,
+        "alert_precision": 0.3224,
+        "base_rate": 0.1097
       },
       "calibrated": {
-        "auc_signal": 0.6441,
-        "auc_stock_day": 0.6635,
-        "spearman_abs_z": 0.1473,
-        "alerts_share": 0.0427,
-        "alert_precision": 0.4209,
-        "base_rate": 0.1024
+        "auc_signal": 0.6544,
+        "auc_stock_day": 0.6154,
+        "spearman_abs_z": 0.1543,
+        "alerts_share": 0.0296,
+        "alert_precision": 0.4703,
+        "base_rate": 0.1097
       }
     }
   }

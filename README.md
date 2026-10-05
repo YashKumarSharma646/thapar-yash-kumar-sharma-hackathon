@@ -8,10 +8,10 @@ S&P Global × Crisil Campus Hackathon 2026 · Case Study submission · Yash Kuma
 
 ## What it does
 
-1. **Ingests** text from two sources (financial news and stock-related social posts), replayed from public datasets or pulled live from GDELT.
+1. **Ingests** text from two sources (financial news headlines and stock-related tweets), replayed from public datasets on an accelerated clock, so the demo is reproducible offline.
 2. **Analyzes** each item with NLP and emits a structured `RiskSignal`: sentiment (-1 to 1), event class, impact score (1-10) and an evidence card explaining the scores.
 3. **Publishes** signals over Redis Streams, a REST API and a JSONL file.
-4. **Stress-tests** a synthetic wholesale banking portfolio (loans, bonds, derivatives) when a high-impact event is detected (Module B).
+4. **Stress-tests** a synthetic wholesale banking portfolio (loans, bonds, derivatives) whenever a high-impact event is detected (Module B), and shows value, P&L, expected loss and CET1 before and after.
 
 Architecture: see [`docs/architecture.md`](docs/architecture.md).
 
@@ -27,7 +27,7 @@ docker compose up --build
 
 - Dashboard: http://localhost:8501
 - API docs: http://localhost:8000/docs
-- Signals file: `data/processed/signals.jsonl` (written on the host)
+- Output files on the host: `data/processed/signals.jsonl`, `data/processed/stress_results.jsonl`
 
 No API keys are needed and nothing is downloaded at run time: the NLP model ships in the repo (`models/ripple-nlp/`, 34 MB int8 ONNX).
 
@@ -37,8 +37,9 @@ No API keys are needed and nothing is downloaded at run time: the NLP model ship
 |---|---|---|
 | `ingestor` | – | Replays the two sources into Redis Streams |
 | `engine` | – | NLP risk engine: raw text → `RiskSignal` |
-| `api` | 8000 | REST: `/signals`, `/stats`, `/health` |
-| `dashboard` | 8501 | Streamlit live view |
+| `stress_test` | – | Module B: subscribes to signals, stress-tests the portfolio on impact ≥ 7 |
+| `api` | 8000 | REST: `/signals`, `/stress`, `/portfolio`, `/stats`, `/health` |
+| `dashboard` | 8501 | Streamlit: risk signals, stress tests, what-if scenarios |
 | `redis` | 6379 | Message bus (Redis Streams) |
 
 To replay again: `docker compose restart ingestor`. To change speed, set `REPLAY_SPEED` in `.env.example` (simulated seconds per real second).
@@ -92,15 +93,43 @@ Fitted on 129k historical signals (2014–2020, replay window excluded) and test
 The Facebook Q2-miss headline (26 Jul 2018, −8.7σ) is the top signal of the replay.
 Reproduce: `python scripts/fetch_prices.py && python scripts/build_calibration_set.py && python scripts/calibrate_impact.py`.
 
+## Module B: event-driven portfolio stress testing
+
+The `stress_test` service subscribes to the engine's signals. A signal with impact ≥ 7 triggers a stress test of a
+synthetic wholesale book, unless the same scenario for the same target ran in the previous 12 hours of simulated time.
+
+**Portfolio** (`data/reference/portfolio.csv`, seeded generator in `src/ripple/stress_test/portfolio.py`): 97 positions,
+$12.6bn notional: loans to 51 borrowers (the 30 tracked companies plus synthetic corporates in Turkey, China, Europe,
+India and LatAm), corporate and sovereign bonds, interest-rate swaps, FX forwards, CDS and equity swaps.
+
+**Scenarios** (`data/reference/scenario_library.json`, built by `scripts/build_scenario_library.py`):
+
+| Signal | Scenario | Shocks (full severity) |
+|---|---|---|
+| Geopolitical | US–China trade-war escalation, May 2019 (measured) | SPY −4.5%, 10y −13bp, CNY −1.3%, HY +48bp; named region +120bp (assumed) |
+| Credit Event (sovereign / EM) | Turkish lira crisis, Aug 2018 (measured) | TRY −28%, EM spreads +43bp; Turkey +250bp (assumed) |
+| Macroeconomic | Taper tantrum, May–Jun 2013 (measured) | 10y +92bp, HY +86bp, EM +115bp, TRY −7.5% |
+| Company events | Issuer-specific | Equity −k·σ of that stock (k = 1–4 by event type), issuer spread +10–400bp |
+
+Shocks scale with impact: ×40% at the threshold (7), the full historical episode at 10. A headline naming a region
+re-targets the regional shock (e.g. an EU tariff story stresses European exposures).
+
+**Revaluation and capital** (`src/ripple/stress_test/engine.py`): bonds by duration and convexity; swaps by DV01; CDS by
+spread DV01; FX forwards and equity swaps by delta; FX translation of non-USD loans and bonds; loan expected loss
+(PD × LGD × EAD) with PDs stressed in proportion to the spread move; Basel IRB credit RWA; CET1 ratio before and after
+(CET1 capital set at 13% of baseline RWA, losses pre-tax). Simplifications are listed on the dashboard.
+
+The dashboard's **What-if** tab runs any event type, entity and impact through the same scenarios and pricing.
+
 ## Repository structure
 
 ```
 src/ripple/        Python package (ingestion, engine, api, stress_test, rebalancer, dashboard)
-data/              Sample data (committed), raw + processed (generated); sources in data/README.md
+data/              Replay sample, portfolio, scenario library, labelling corpus (committed); raw + processed (generated)
 docs/              Architecture and presentation
 notebooks/         Colab notebooks for model training and calibration
 scripts/           Data download and utility scripts
-models/            Exported model artifacts (generated)
+models/            Distilled NLP model (int8 ONNX) and impact calibration (committed)
 tests/             Unit tests
 ```
 

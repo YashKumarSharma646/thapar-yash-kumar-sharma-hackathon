@@ -128,3 +128,9 @@ def test_calibrated_impact_is_monotone_and_explained():
     # rules backend (no model severity) falls back to the event prior
     _, b = model(EventType.CREDIT_EVENT, -0.5, 0.2, SourceType.NEWS, None)
     assert b["severity"] == 0.9
+
+
+def test_market_news_maps_to_region_entity(linker):
+    engine = RiskEngine(RuleAnalyzer(FixedScorer(-0.9)), linker, impact=None)
+    signals = engine.process([doc("Turkish lira plunges as sanctions fears grow"), doc("Fed signals rate hike as inflation rises")])
+    assert [s.entity for s in signals] == ["TURKEY", MARKET]

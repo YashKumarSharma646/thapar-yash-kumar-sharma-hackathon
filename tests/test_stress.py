@@ -66,6 +66,10 @@ def test_market_and_company_scenarios():
     assert turkey.name == "em_currency_crisis" and turkey.multiplier == 1.0 and turkey.fx["TRY"] < -0.2
     europe = build_scenario(signal(headline="EU retaliates with tariffs on US goods"), lib)
     assert europe.name == "trade_war" and europe.affected_region == "Europe" and "region:Europe" in europe.spreads_bp
+    tariffs_on_turkey = build_scenario(signal("TURKEY", EventType.GEOPOLITICAL, 9, -0.9, "Trump doubles tariffs on Turkish steel"), lib)
+    assert tariffs_on_turkey.name == "em_currency_crisis" and tariffs_on_turkey.affected_region == "Turkey"
+    rupee = build_scenario(signal("INDIA", EventType.CREDIT_EVENT, 10, -0.9, "Rupee crashes"), lib)
+    assert rupee.fx["INR"] < -0.2 and "TRY" not in rupee.fx  # the crisis currency move follows the target region
     fb = build_scenario(signal("FB", EventType.EARNINGS, 10, -0.8, "Facebook misses"), lib)
     assert fb.name == "company_event" and fb.equity["FB"] < 0 and fb.spreads_bp["FB"] > 0 and not fb.rates_bp
     good = build_scenario(signal("MSFT", EventType.EARNINGS, 10, 0.9, "Microsoft beats"), lib)

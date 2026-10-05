@@ -14,7 +14,7 @@ STREAM_RAW_TEXT = "ripple:raw_text"
 STREAM_SIGNALS = "ripple:signals"
 STREAM_STRESS = "ripple:stress_results"
 
-# Ingestion: "replay" (offline, default, reproducible) or "live" (GDELT + optional keyed APIs).
+# Ingestion: "replay" (offline, reproducible) is the only implemented mode; a live feed (e.g. GDELT) is future work.
 INGEST_MODE = os.getenv("INGEST_MODE", "replay")
 REPLAY_SPEED = float(os.getenv("REPLAY_SPEED", "7200"))  # simulated seconds per real second
 
