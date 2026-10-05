@@ -4,8 +4,9 @@ from fastapi import FastAPI, Query
 
 from ripple import __version__
 from ripple.bus import get_client
-from ripple.config import STREAM_SIGNALS
-from ripple.schemas import RiskSignal
+from ripple.config import STREAM_SIGNALS, STREAM_STRESS
+from ripple.schemas import RiskSignal, StressResult
+from ripple.stress_test.portfolio import load_portfolio
 
 app = FastAPI(title="Ripple API", version=__version__)
 
@@ -41,3 +42,16 @@ def stats() -> dict:
     client = get_client()
     counters = {k: int(v) for k, v in client.hgetall("ripple:engine_stats").items()}
     return {"engine": counters, "replay_clock": client.get("ripple:replay_clock")}
+
+
+@app.get("/stress", response_model=list[StressResult])
+def stress_results(limit: int = Query(20, ge=1, le=1000)) -> list[StressResult]:
+    """Module B: most recent stress tests first."""
+    entries = get_client().xrevrange(STREAM_STRESS, count=limit)
+    return [StressResult.model_validate_json(fields["data"]) for _, fields in entries]
+
+
+@app.get("/portfolio")
+def portfolio() -> list[dict]:
+    """The synthetic wholesale portfolio that Module B stress-tests."""
+    return load_portfolio().astype(object).where(lambda d: d.notna(), None).to_dict(orient="records")

@@ -49,5 +49,10 @@ services:
     ports: ["8501:8501"]
     depends_on: [api]
 
-  # Day 6-7:
-  # stress_test:  python -m ripple.stress_test.worker
+  stress_test:
+    <<: *app
+    build: { context: ., target: base }
+    image: ripple-base
+    command: python -m ripple.stress_test.worker
+    volumes:
+      - ./data/processed:/app/data/processed   # stress_results.jsonl is written to the host

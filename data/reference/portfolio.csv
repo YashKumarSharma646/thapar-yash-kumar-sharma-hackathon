@@ -1,0 +1,98 @@
+position_id,ticker,pd,lgd,duration,convexity,dv01_usd,direction,beta,asset_class,counterparty,sector,region,rating,currency,notional_usd,market_value_usd,maturity_y
+P001,AAPL,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Apple Inc.,Technology,US,AA,USD,150100000.0,150100000.0,5
+P002,MSFT,0.0001,0.45,0.0,0.0,0.0,1,0.0,Loan,Microsoft Corp.,Technology,US,AAA,USD,130800000.0,130800000.0,7
+P003,GOOGL,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Alphabet Inc.,Communication Services,US,AA,USD,96100000.0,96100000.0,1
+P004,AMZN,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Amazon.com Inc.,Consumer Discretionary,US,AA,USD,91400000.0,91400000.0,3
+P005,FB,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Facebook Inc.,Communication Services,US,A,USD,154600000.0,154600000.0,4
+P006,NFLX,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Netflix Inc.,Communication Services,US,BB,USD,117300000.0,117300000.0,6
+P007,INTC,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Intel Corp.,Technology,US,A,USD,110000000.0,110000000.0,6
+P008,CSCO,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Cisco Systems Inc.,Technology,US,AA,USD,179300000.0,179300000.0,3
+P009,ORCL,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Oracle Corp.,Technology,US,A,USD,158100000.0,158100000.0,7
+P010,IBM,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,International Business Machines,Technology,US,A,USD,147800000.0,147800000.0,4
+P011,ADBE,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Adobe Inc.,Technology,US,A,USD,212400000.0,212400000.0,4
+P012,DIS,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Walt Disney Co.,Communication Services,US,A,USD,119300000.0,119300000.0,7
+P013,CMCSA,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Comcast Corp.,Communication Services,US,A,USD,58000000.0,58000000.0,3
+P014,VZ,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Verizon Communications,Communication Services,US,BBB,USD,59700000.0,59700000.0,7
+P015,NKE,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Nike Inc.,Consumer Discretionary,US,AA,USD,133400000.0,133400000.0,7
+P016,SBUX,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Starbucks Corp.,Consumer Discretionary,US,BBB,USD,171800000.0,171800000.0,5
+P017,MCD,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,McDonald's Corp.,Consumer Discretionary,US,BBB,USD,162200000.0,162200000.0,1
+P018,F,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Ford Motor Co.,Consumer Discretionary,US,BBB,USD,42600000.0,42600000.0,4
+P019,WMT,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Walmart Inc.,Consumer Staples,US,AA,USD,114600000.0,114600000.0,6
+P020,COST,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Costco Wholesale Corp.,Consumer Staples,US,A,USD,158700000.0,158700000.0,5
+P021,PEP,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,PepsiCo Inc.,Consumer Staples,US,A,USD,69800000.0,69800000.0,3
+P022,KO,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Coca-Cola Co.,Consumer Staples,US,AA,USD,161400000.0,161400000.0,2
+P023,JPM,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,JPMorgan Chase & Co.,Financials,US,A,USD,92000000.0,92000000.0,7
+P024,C,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Citigroup Inc.,Financials,US,BBB,USD,255000000.0,255000000.0,5
+P025,V,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Visa Inc.,Financials,US,AA,USD,100200000.0,100200000.0,4
+P026,MA,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Mastercard Inc.,Financials,US,A,USD,233400000.0,233400000.0,1
+P027,PYPL,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,PayPal Holdings Inc.,Financials,US,A,USD,112000000.0,112000000.0,4
+P028,BA,0.0006,0.45,0.0,0.0,0.0,1,0.0,Loan,Boeing Co.,Industrials,US,A,USD,158500000.0,158500000.0,2
+P029,XOM,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Exxon Mobil Corp.,Energy,US,AA,USD,154900000.0,154900000.0,7
+P030,PFE,0.0002,0.45,0.0,0.0,0.0,1,0.0,Loan,Pfizer Inc.,Health Care,US,AA,USD,155800000.0,155800000.0,6
+P031,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Anatolia Steel AS,Materials,Turkey,BB,TRY,177500000.0,177500000.0,4
+P032,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Bosphorus Bank AS,Financials,Turkey,BB,USD,138300000.0,138300000.0,1
+P033,,0.04,0.35,0.0,0.0,0.0,1,0.0,Loan,Ege Textiles AS,Consumer Discretionary,Turkey,B,TRY,95500000.0,95500000.0,5
+P034,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Marmara Energy AS,Utilities,Turkey,BB,USD,244700000.0,244700000.0,7
+P035,,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Shenzhen Components Ltd,Technology,China,BBB,CNY,131800000.0,131800000.0,1
+P036,,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Yangtze Logistics Co,Industrials,China,BBB,USD,93400000.0,93400000.0,1
+P037,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Pearl River Property Ltd,Real Estate,China,BB,USD,120100000.0,120100000.0,2
+P038,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Huabei Auto Parts Co,Consumer Discretionary,China,BB,CNY,126600000.0,126600000.0,2
+P039,,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Rhine Chemicals GmbH,Materials,Europe,BBB,EUR,87100000.0,87100000.0,5
+P040,,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Iberia Telecom SA,Communication Services,Europe,BBB,EUR,184800000.0,184800000.0,7
+P041,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Nordic Shipping ASA,Industrials,Europe,BB,USD,64200000.0,64200000.0,4
+P042,,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Lombardy Machinery SpA,Industrials,Europe,BBB,EUR,71400000.0,71400000.0,5
+P043,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Gujarat Infra Ltd,Industrials,India,BB,INR,95900000.0,95900000.0,4
+P044,,0.002,0.45,0.0,0.0,0.0,1,0.0,Loan,Deccan Pharma Ltd,Health Care,India,BBB,USD,67400000.0,67400000.0,4
+P045,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Bengal Power Ltd,Utilities,India,BB,INR,81600000.0,81600000.0,6
+P046,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Petro Andes SA,Energy,LatAm,BB,USD,159600000.0,159600000.0,1
+P047,,0.04,0.35,0.0,0.0,0.0,1,0.0,Loan,Pampas Agro SA,Consumer Staples,LatAm,B,USD,46400000.0,46400000.0,1
+P048,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Rio Metals SA,Materials,LatAm,BB,USD,124400000.0,124400000.0,5
+P049,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Midwest Freight Inc,Industrials,US,BB,USD,33200000.0,33200000.0,1
+P050,,0.009,0.35,0.0,0.0,0.0,1,0.0,Loan,Gulf Coast Refining Inc,Energy,US,BB,USD,85700000.0,85700000.0,5
+P051,,0.04,0.35,0.0,0.0,0.0,1,0.0,Loan,Sunbelt Retail Inc,Consumer Discretionary,US,B,USD,168700000.0,168700000.0,4
+P052,AAPL,,,8.32,83.8,0.0,1,0.0,Corporate bond,Apple Inc.,Technology,US,AA,USD,148500000.0,148500000.0,10
+P053,AMZN,,,8.32,83.8,0.0,1,0.0,Corporate bond,Amazon.com Inc.,Consumer Discretionary,US,AA,USD,57500000.0,57500000.0,10
+P054,FB,,,6.05,44.9,0.0,1,0.0,Corporate bond,Facebook Inc.,Communication Services,US,A,USD,63100000.0,63100000.0,7
+P055,NFLX,,,6.83,59.6,0.0,1,0.0,Corporate bond,Netflix Inc.,Communication Services,US,BB,USD,106300000.0,106300000.0,9
+P056,IBM,,,8.19,82.0,0.0,1,0.0,Corporate bond,International Business Machines,Technology,US,A,USD,61700000.0,61700000.0,10
+P057,VZ,,,5.17,33.5,0.0,1,0.0,Corporate bond,Verizon Communications,Communication Services,US,BBB,USD,117000000.0,117000000.0,6
+P058,SBUX,,,7.95,78.4,0.0,1,0.0,Corporate bond,Starbucks Corp.,Consumer Discretionary,US,BBB,USD,108400000.0,108400000.0,10
+P059,F,,,2.75,10.4,0.0,1,0.0,Corporate bond,Ford Motor Co.,Consumer Discretionary,US,BBB,USD,89300000.0,89300000.0,3
+P060,C,,,5.17,33.5,0.0,1,0.0,Corporate bond,Citigroup Inc.,Financials,US,BBB,USD,68700000.0,68700000.0,6
+P061,BA,,,6.79,56.3,0.0,1,0.0,Corporate bond,Boeing Co.,Industrials,US,A,USD,145100000.0,145100000.0,8
+P062,,,,2.68,9.9,0.0,1,0.0,Corporate bond,Anatolia Steel AS,Materials,Turkey,BB,USD,96100000.0,96100000.0,3
+P063,,,,6.27,52.3,0.0,1,0.0,Corporate bond,Ege Textiles AS,Consumer Discretionary,Turkey,B,USD,78700000.0,78700000.0,9
+P064,,,,5.91,43.4,0.0,1,0.0,Corporate bond,Shenzhen Components Ltd,Technology,China,BBB,USD,130200000.0,130200000.0,7
+P065,,,,2.68,9.9,0.0,1,0.0,Corporate bond,Pearl River Property Ltd,Real Estate,China,BB,USD,84700000.0,84700000.0,3
+P066,,,,2.75,10.4,0.0,1,0.0,Corporate bond,Rhine Chemicals GmbH,Materials,Europe,BBB,USD,43600000.0,43600000.0,3
+P067,,,,7.4,70.2,0.0,1,0.0,Corporate bond,Nordic Shipping ASA,Industrials,Europe,BB,USD,156100000.0,156100000.0,10
+P068,,,,2.68,9.9,0.0,1,0.0,Corporate bond,Gujarat Infra Ltd,Industrials,India,BB,USD,118900000.0,118900000.0,3
+P069,,,,6.23,49.5,0.0,1,0.0,Corporate bond,Bengal Power Ltd,Utilities,India,BB,USD,102800000.0,102800000.0,8
+P070,,,,4.64,28.2,0.0,1,0.0,Corporate bond,Pampas Agro SA,Consumer Staples,LatAm,B,USD,144700000.0,144700000.0,6
+P071,,,,8.57,87.7,0.0,1,0.0,Sovereign bond,US Treasury 2028,Sovereign,US,AAA,USD,800000000.0,800000000.0,10
+P072,,,,9.73,105.7,0.0,1,0.0,Sovereign bond,German Bund 2028,Sovereign,Europe,AAA,EUR,300000000.0,300000000.0,10
+P073,,,,7.4,70.2,0.0,1,0.0,Sovereign bond,Republic of Turkey 2028 (USD),Sovereign,Turkey,BB,USD,150000000.0,150000000.0,10
+P074,,,,7.61,70.1,0.0,1,0.0,Sovereign bond,China Government Bond 2027,Sovereign,China,A,CNY,200000000.0,200000000.0,9
+P075,,,,6.86,62.7,0.0,1,0.0,Sovereign bond,India Government Bond 2028,Sovereign,India,BBB,INR,150000000.0,150000000.0,10
+P076,,,,0.0,0.0,853020.0,1,0.0,Interest rate swap,USD IRS pay fixed 10y,Rates,US,AA,USD,1000000000.0,0.0,10
+P077,,,,0.0,0.0,196450.0,-1,0.0,Interest rate swap,EUR IRS receive fixed 5y,Rates,Europe,AA,EUR,400000000.0,0.0,5
+P078,,,,0.0,0.0,0.0,-1,0.0,FX forward,Short TRY forward 6m,FX,Turkey,A,TRY,150000000.0,0.0,1
+P079,,,,0.0,0.0,0.0,1,0.0,FX forward,Long CNY forward 3m (client),FX,China,A,CNY,120000000.0,0.0,1
+P080,,,,0.0,0.0,0.0,-1,0.0,FX forward,Short INR forward 6m,FX,India,A,INR,60000000.0,0.0,1
+P081,,,,0.0,0.0,22500.0,1,0.0,CDS,CDS 5y on Bosphorus Bank AS,Financials,Turkey,BB,USD,50000000.0,0.0,5
+P082,,,,0.0,0.0,22500.0,1,0.0,CDS,CDS 5y on Pearl River Property Ltd,Real Estate,China,BB,USD,50000000.0,0.0,5
+P083,F,,,0.0,0.0,22500.0,1,0.0,CDS,CDS 5y on Ford Motor Co.,Consumer Discretionary,US,BBB,USD,50000000.0,0.0,5
+P084,NFLX,,,0.0,0.0,22500.0,1,0.0,CDS,CDS 5y on Netflix Inc.,Communication Services,US,BB,USD,50000000.0,0.0,5
+P085,IBM,,,0.0,0.0,22500.0,-1,0.0,CDS,CDS 5y on International Business Machines,Technology,US,A,USD,50000000.0,0.0,5
+P086,WMT,,,0.0,0.0,22500.0,-1,0.0,CDS,CDS 5y on Walmart Inc.,Consumer Staples,US,AA,USD,50000000.0,0.0,5
+P087,,,,0.0,0.0,22500.0,-1,0.0,CDS,CDS 5y on Rhine Chemicals GmbH,Materials,Europe,BBB,USD,50000000.0,0.0,5
+P088,FB,,,0.0,0.0,22500.0,-1,0.0,CDS,CDS 5y on Facebook Inc.,Communication Services,US,A,USD,50000000.0,0.0,5
+P089,FB,,,0.0,0.0,0.0,1,1.2,Equity swap,Facebook Inc.,Communication Services,US,NR,USD,60000000.0,0.0,1
+P090,AAPL,,,0.0,0.0,0.0,1,1.1,Equity swap,Apple Inc.,Technology,US,NR,USD,50000000.0,0.0,1
+P091,AMZN,,,0.0,0.0,0.0,1,1.3,Equity swap,Amazon.com Inc.,Consumer Discretionary,US,NR,USD,50000000.0,0.0,1
+P092,NFLX,,,0.0,0.0,0.0,1,1.5,Equity swap,Netflix Inc.,Communication Services,US,NR,USD,30000000.0,0.0,1
+P093,MSFT,,,0.0,0.0,0.0,1,1.1,Equity swap,Microsoft Corp.,Technology,US,NR,USD,40000000.0,0.0,1
+P094,GOOGL,,,0.0,0.0,0.0,1,1.1,Equity swap,Alphabet Inc.,Communication Services,US,NR,USD,40000000.0,0.0,1
+P095,BA,,,0.0,0.0,0.0,1,1.2,Equity swap,Boeing Co.,Industrials,US,NR,USD,30000000.0,0.0,1
+P096,JPM,,,0.0,0.0,0.0,1,1.1,Equity swap,JPMorgan Chase & Co.,Financials,US,NR,USD,40000000.0,0.0,1
+P097,MARKET,,,0.0,0.0,0.0,-1,1.0,Equity swap,S&P 500 future (hedge),Index,US,NR,USD,150000000.0,0.0,1

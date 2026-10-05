@@ -1,4 +1,4 @@
-"""Streamlit dashboard: live risk signals from the Ripple engine (Module B views added on Day 6-7)."""
+"""Streamlit dashboard: live risk signals (engine) and event-driven portfolio stress tests (Module B)."""
 
 import os
 
@@ -6,6 +6,12 @@ import altair as alt
 import pandas as pd
 import requests
 import streamlit as st
+
+from ripple.engine.regions import REGIONS
+from ripple.schemas import EventType, RiskSignal
+from ripple.stress_test.portfolio import load_portfolio
+from ripple.stress_test.scenarios import build_scenario, load_library
+from ripple.stress_test.worker import stress_result
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 REFRESH_SECONDS = 3
@@ -24,6 +30,7 @@ ENTITY_COLORS = {
 }
 INK, INK_2, MUTED, GRID, AXIS = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#c3c2b7"
 SEQ_BLUE = "#2a78d6"
+GAIN, LOSS = "#2a78d6", "#e34948"  # diverging poles (validated pair), never status colours
 STATUS = [(8.5, "Critical", "#d03b3b", "▲▲"), (7.0, "Serious", "#ec835a", "▲"), (0.0, "Watch", "#fab219", "●")]
 
 st.set_page_config(page_title="Ripple", layout="wide")
@@ -126,7 +133,7 @@ def evidence_card(row: pd.Series) -> None:
 
 
 st.title("Ripple")
-st.caption("Real-time NLP risk signals from news and social media")
+st.caption("Real-time NLP risk signals from news and social media, and the portfolio stress tests they trigger")
 
 
 @st.fragment(run_every=REFRESH_SECONDS)
@@ -197,4 +204,141 @@ def live_view() -> None:
         evidence_card(alerts.iloc[0])
 
 
-live_view()
+
+def money(x: float) -> str:
+    sign = "-" if x < 0 else ""
+    return f"{sign}${abs(x) / 1e9:,.2f}bn" if abs(x) >= 1e9 else f"{sign}${abs(x) / 1e6:,.1f}m"
+
+
+def pnl_bars(values: dict[str, float], title: str) -> alt.Chart:
+    data = pd.DataFrame({"bucket": list(values), "pnl": [v / 1e6 for v in values.values()]})
+    data = data[data.pnl.abs() >= 0.05]
+    data["direction"] = ["Gain" if v >= 0 else "Loss" for v in data.pnl]
+    data["label"] = [f"{v:+,.1f}" for v in data.pnl]
+    order = data.sort_values("pnl").bucket.tolist()
+    base = alt.Chart(data).encode(
+        y=alt.Y("bucket:N", sort=order, title=None, axis=alt.Axis(labelColor=INK_2, labelLimit=160)),
+        tooltip=[alt.Tooltip("bucket:N", title=title), alt.Tooltip("pnl:Q", title="P&L ($m)", format="+,.1f")],
+    )
+    bars = base.mark_bar(cornerRadiusEnd=4, height=14).encode(
+        x=alt.X("pnl:Q", title="P&L ($m)", axis=alt.Axis(grid=True, tickCount=5)),
+        color=alt.Color("direction:N", title=None, scale=alt.Scale(domain=["Gain", "Loss"], range=[GAIN, LOSS])),
+    )
+    gains = base.transform_filter("datum.pnl >= 0").mark_text(align="left", dx=4, color=INK_2, fontSize=11)
+    losses = base.transform_filter("datum.pnl < 0").mark_text(align="right", dx=-4, color=INK_2, fontSize=11)
+    labels = [m.encode(x="pnl:Q", text="label:N") for m in (gains, losses)]
+    zero = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color=AXIS).encode(x="x:Q")
+    return chart_theme(alt.layer(zero, bars, *labels).properties(height=max(120, 34 * len(data))))
+
+
+def stress_card(r: dict) -> None:
+    t = r["trigger"]
+    st.markdown(
+        f"**Trigger:** {t['entity']} · {t['event_type']} · {status_label(t['impact_score'])} · "
+        f"impact **{t['impact_score']:.1f}** · {pd.to_datetime(t['published_at']):%d %b %Y %H:%M}"
+    )
+    st.write(f"“{t['headline']}”")
+    st.markdown(f"**Scenario:** {r['scenario_title']} · severity ×{r['severity_multiplier']:.0%}")
+    st.caption(r["narrative"])
+
+    k = st.columns(4)
+    k[0].metric("Portfolio value", money(r["value_after"]), f"{money(r['pnl_total'])} from {money(r['value_before'])}")
+    k[1].metric("CET1 ratio", f"{r['cet1_ratio_after']:.2%}",
+                f"{100 * (r['cet1_ratio_after'] - r['cet1_ratio_before']):+.2f} pp from {r['cet1_ratio_before']:.1%}")
+    k[2].metric("Expected loss (loans)", money(r["expected_loss_after"]),
+                money(r["expected_loss_after"] - r["expected_loss_before"]), delta_color="inverse")
+    k[3].metric("Credit RWA", money(r["rwa_after"]), money(r["rwa_after"] - r["rwa_before"]), delta_color="inverse")
+
+    left, right = st.columns(2)
+    with left:
+        st.markdown("**P&L by asset class**")
+        st.altair_chart(pnl_bars(r["pnl_by_asset_class"], "Asset class"), use_container_width=True)
+    with right:
+        st.markdown("**P&L by region**")
+        st.altair_chart(pnl_bars(r["pnl_by_region"], "Region"), use_container_width=True)
+
+    st.markdown("**Largest position impacts**")
+    top = pd.DataFrame(r["top_positions"])
+    if not top.empty:
+        top["pnl"] = top.pnl / 1e6
+        st.dataframe(
+            top[["counterparty", "asset_class", "region", "pnl"]], hide_index=True, use_container_width=True,
+            column_config={"counterparty": "Position", "asset_class": "Asset class", "region": "Region",
+                           "pnl": st.column_config.NumberColumn("P&L ($m)", format="%+.1f")},
+        )
+    with st.expander("Shocks applied and assumptions"):
+        shocks = [
+            {"factor": f, "target": k, "shock": f"{v:+.1%}" if f in ("equity", "fx") else f"{v:+.0f} bp"}
+            for f, d in r["shocks"].items() for k, v in d.items()
+        ]
+        st.dataframe(pd.DataFrame(shocks), hide_index=True, use_container_width=True)
+        for a in r["assumptions"]:
+            st.caption(f"• {a}")
+        st.caption(
+            "• Sensitivity-based revaluation (duration/convexity, DV01, spread DV01, delta); loan losses as "
+            "expected-loss provisions with PDs stressed by the spread move; Basel IRB credit RWA; CET1 capital "
+            "set at 13% of baseline RWA; losses pre-tax."
+        )
+
+
+@st.cache_resource
+def stress_inputs():
+    return load_portfolio(), load_library()
+
+
+def what_if() -> None:
+    book, library = stress_inputs()
+    companies = sorted(t for t in book.ticker.dropna().unique() if t != "MARKET")
+    c = st.columns([2, 2, 2, 3])
+    event = c[0].selectbox("Event type", [e.value for e in EventType if e != EventType.OTHER], key="wi_event")
+    entity = c[1].selectbox("Entity", ["MARKET", *REGIONS, *companies], key="wi_entity")
+    impact = c[2].slider("Impact score", 7.0, 10.0, 9.0, 0.1, key="wi_impact")
+    headline = c[3].text_input("Headline (optional)", "", key="wi_headline")
+    sig = RiskSignal(
+        doc_id="what-if", published_at=pd.Timestamp.now(tz="UTC"), source="news", entity=entity,
+        sentiment_score=-0.9, event_type=event, event_confidence=1.0, impact_score=impact,
+        headline=headline or f"What-if: {event} event, {entity}",
+    )
+    stress_card(stress_result(sig, build_scenario(sig, library), book).model_dump(mode="json"))
+
+
+@st.fragment(run_every=REFRESH_SECONDS)
+def stress_view() -> None:
+    try:
+        results = fetch("/stress", limit=200)
+    except requests.RequestException as e:
+        st.error(f"API not reachable at {API_URL}: {e}")
+        return
+    if not results:
+        st.info(f"No stress test yet. A signal with impact ≥ {HIGH_IMPACT:g} triggers one; try the What-if tab meanwhile.")
+        return
+    history = pd.DataFrame([{
+        "time": pd.to_datetime(r["trigger"]["published_at"]), "entity": r["trigger"]["entity"],
+        "event": r["trigger"]["event_type"], "impact": r["trigger"]["impact_score"], "scenario": r["scenario_title"],
+        "pnl": r["pnl_total"] / 1e6, "cet1": 100 * r["cet1_ratio_after"], "headline": r["trigger"]["headline"],
+    } for r in results])
+    k = st.columns(3)
+    k[0].metric("Stress tests triggered", f"{len(results):,}")
+    k[1].metric("Worst P&L", f"{history.pnl.min():+,.1f}m")
+    k[2].metric("Lowest CET1 ratio", f"{history.cet1.min():.2f}%")
+    labels = [f"{h.time:%d %b %H:%M} · {h.entity} · {h.event} · {h.pnl:+,.1f}m" for h in history.itertuples()]
+    idx = st.selectbox("Stress test (latest first)", range(len(results)), format_func=labels.__getitem__, key="stress_pick")
+    stress_card(results[idx])
+    with st.expander(f"All {len(results)} stress tests"):
+        st.dataframe(history, hide_index=True, use_container_width=True, column_config={
+            "time": st.column_config.DatetimeColumn("Time", format="DD MMM HH:mm"),
+            "impact": st.column_config.NumberColumn("Impact", format="%.1f"),
+            "pnl": st.column_config.NumberColumn("P&L ($m)", format="%+.1f"),
+            "cet1": st.column_config.NumberColumn("CET1 after (%)", format="%.2f"),
+            "headline": st.column_config.TextColumn("Headline", width="large"),
+        })
+
+
+signals_tab, stress_tab, what_if_tab = st.tabs(["Risk signals", "Stress testing (Module B)", "What-if scenario"])
+with signals_tab:
+    live_view()
+with stress_tab:
+    stress_view()
+with what_if_tab:
+    st.caption("Pick an event and see how the portfolio would fare. Same scenario library and pricing as the live tests.")
+    what_if()

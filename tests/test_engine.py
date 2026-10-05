@@ -67,7 +67,7 @@ def test_noise_filter():
 
 def test_buzz_rises_with_abnormal_attention():
     tracker = BuzzTracker()
-    for day in range(7, 0, -1):  # quiet baseline: 2 mentions/day
+    for day in range(9, 0, -1):  # quiet baseline: 2 mentions/day, longer than the warm-up
         for _ in range(2):
             tracker.observe("FB", T0 - timedelta(days=day))
     quiet = tracker.observe("FB", T0)
@@ -75,6 +75,13 @@ def test_buzz_rises_with_abnormal_attention():
         spike = tracker.observe("FB", T0)
     assert spike > quiet
     assert spike == pytest.approx(1.0, abs=0.05)
+
+
+
+def test_buzz_warm_up_does_not_flag_replay_start():
+    tracker = BuzzTracker()
+    first_day = [tracker.observe("MARKET", T0 + timedelta(minutes=10 * i)) for i in range(60)]
+    assert max(first_day[10:]) < 0.5  # a busy first day is the baseline, not a spike
 
 
 def test_impact_score_bounds_and_ordering():

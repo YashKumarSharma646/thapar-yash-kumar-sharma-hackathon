@@ -12,6 +12,7 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 # Redis Streams used as the pub/sub backbone between services.
 STREAM_RAW_TEXT = "ripple:raw_text"
 STREAM_SIGNALS = "ripple:signals"
+STREAM_STRESS = "ripple:stress_results"
 
 # Ingestion: "replay" (offline, default, reproducible) or "live" (GDELT + optional keyed APIs).
 INGEST_MODE = os.getenv("INGEST_MODE", "replay")

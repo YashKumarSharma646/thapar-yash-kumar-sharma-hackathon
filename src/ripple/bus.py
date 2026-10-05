@@ -37,14 +37,22 @@ def consume_batches(
 ) -> Iterator[list[M]]:
     """Yield batches for a consumer group. A batch is acknowledged once the caller asks for the next one,
     so a crash mid-batch leaves it pending for redelivery."""
-    try:
-        client.xgroup_create(stream, group, id="0", mkstream=True)
-    except redis.ResponseError as e:
-        if "BUSYGROUP" not in str(e):
-            raise
+    def ensure_group() -> None:
+        try:
+            client.xgroup_create(stream, group, id="0", mkstream=True)
+        except redis.ResponseError as e:
+            if "BUSYGROUP" not in str(e):
+                raise
 
+    ensure_group()
     while True:
-        response = client.xreadgroup(group, consumer, {stream: ">"}, count=batch_size, block=block_ms)
+        try:
+            response = client.xreadgroup(group, consumer, {stream: ">"}, count=batch_size, block=block_ms)
+        except redis.ResponseError as e:
+            if "NOGROUP" not in str(e):
+                raise
+            ensure_group()  # the stream was deleted (a new replay session), so the group must be recreated
+            continue
         entries = [entry for _, stream_entries in response or [] for entry in stream_entries]
         if not entries:
             continue

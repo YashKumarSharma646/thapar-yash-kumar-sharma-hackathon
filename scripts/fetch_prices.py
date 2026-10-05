@@ -1,4 +1,4 @@
-"""Download daily adjusted closes for the tracked companies + SPY (Yahoo Finance via yfinance).
+"""Download daily adjusted closes for the tracked companies, SPY and the region ETFs (Yahoo Finance via yfinance).
 
 Output: data/processed/prices.csv (not committed: Yahoo data, regenerable). Used by impact
 calibration (Day 5) and the stress-test shock library (Module B).
@@ -15,6 +15,7 @@ import yfinance as yf
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from ripple.calibration.returns import PRICES_CSV, YAHOO_SYMBOL  # noqa: E402
+from ripple.engine.regions import REGION_ETF  # noqa: E402
 
 
 def main() -> None:
@@ -23,7 +24,8 @@ def main() -> None:
     parser.add_argument("--end", default="2021-01-01")
     args = parser.parse_args()
 
-    tickers = pd.read_csv(ROOT / "data" / "reference" / "companies.csv").ticker.tolist() + ["SPY"]
+    # Companies, the US market (SPY) and one ETF per region entity (TUR, FXI, VGK, EPI, ILF).
+    tickers = pd.read_csv(ROOT / "data" / "reference" / "companies.csv").ticker.tolist() + ["SPY"] + list(REGION_ETF.values())
     symbols = [YAHOO_SYMBOL.get(t, t) for t in tickers]
     close = yf.download(symbols, start=args.start, end=args.end, auto_adjust=True, progress=False)["Close"]
     close = close.rename(columns={v: k for k, v in YAHOO_SYMBOL.items()})[tickers]

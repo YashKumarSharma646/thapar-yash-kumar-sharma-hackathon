@@ -6,10 +6,12 @@ from datetime import datetime, timedelta
 from ripple.engine.analyzers import Analyzer
 from ripple.engine.entities import MARKET, EntityLinker
 from ripple.engine.impact import BuzzTracker, CalibratedImpact, impact_score
+from ripple.engine.regions import detect_region_entity
 from ripple.engine.relevance import keep_social
 from ripple.schemas import EventType, Evidence, RawDocument, RiskSignal, SourceType
 
-# Market-wide themes still matter downstream (Module B) even when no company is named.
+# Market-wide themes still matter downstream (Module B) even when no company is named: they map to the
+# region they name (TURKEY, CHINA, ...) or to MARKET.
 MARKET_EVENTS = {EventType.GEOPOLITICAL, EventType.MACROECONOMIC, EventType.CREDIT_EVENT}
 REPLAY_RESET_GAP = timedelta(days=1)
 
@@ -43,7 +45,7 @@ class RiskEngine:
                 continue
             kept.append(doc)
 
-        # The event is needed before entity linking (market-wide themes map to MARKET), so every
+        # The event is needed before entity linking (market-wide themes map to a region or MARKET), so every
         # kept document is analyzed in one batch.
         analyses = self.analyzer.analyze([doc.text for doc in kept])
 
@@ -52,7 +54,7 @@ class RiskEngine:
             event = analysis.event
             tickers, mentions = self.linker.link(doc.text, doc.tickers_hint)
             if not tickers and event.event_type in MARKET_EVENTS:
-                tickers = [MARKET]
+                tickers = [detect_region_entity(doc.text) or MARKET]
             if not tickers:
                 self.stats["no_entity"] += 1
                 continue

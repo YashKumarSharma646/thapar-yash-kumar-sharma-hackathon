@@ -1,0 +1,155 @@
+{
+  "trade_war": {
+    "title": "US-China trade-war escalation (May 2019)",
+    "narrative": "US raises tariffs on $200bn of Chinese goods to 25%; China retaliates. Global equities sell off, China-exposed assets and the yuan weaken, flight to Treasuries.",
+    "event_types": [
+      "Geopolitical"
+    ],
+    "window": [
+      "2019-05-03",
+      "2019-05-13"
+    ],
+    "affected_region": "China",
+    "shocks": {
+      "equity": {
+        "global": -0.0448,
+        "region:China": -0.0955,
+        "region:Turkey": -0.0776,
+        "region:EM": -0.0823
+      },
+      "rates_bp": {
+        "USD": -12.6
+      },
+      "fx": {
+        "TRY": -0.0046,
+        "CNY": -0.0131,
+        "INR": -0.0071,
+        "EUR": 0.0056
+      },
+      "spreads_bp": {
+        "IG": 12.6,
+        "HY": 47.9,
+        "EM": 29.8,
+        "region:China": 120
+      }
+    },
+    "provenance": {
+      "equity, rates_bp, fx": "measured: Yahoo Finance closes 2019-05-03 -> 2019-05-13",
+      "spreads_bp IG/HY/EM": "derived: bond-ETF return / duration net of the 10y move (LQD, HYG, EMB)",
+      "spreads_bp region:China": "assumption (no free CDS history)",
+      "rates_bp EUR/other": "assumption: non-USD curves move 60% of USD (engine)"
+    }
+  },
+  "em_currency_crisis": {
+    "title": "Turkish lira crisis (Aug 2018)",
+    "narrative": "Lira collapses amid US sanctions and doubts over central-bank independence; Turkish sovereign and bank credit reprices, contagion to emerging markets.",
+    "event_types": [
+      "Credit Event"
+    ],
+    "window": [
+      "2018-08-01",
+      "2018-08-13"
+    ],
+    "affected_region": "Turkey",
+    "shocks": {
+      "equity": {
+        "global": 0.0044,
+        "region:China": -0.0117,
+        "region:Turkey": -0.3022,
+        "region:EM": -0.0445
+      },
+      "rates_bp": {
+        "USD": -12.6
+      },
+      "fx": {
+        "TRY": -0.2787,
+        "CNY": -0.005,
+        "INR": -0.0085,
+        "EUR": -0.0252
+      },
+      "spreads_bp": {
+        "IG": 9.3,
+        "HY": 12.6,
+        "EM": 42.4,
+        "region:Turkey": 250
+      }
+    },
+    "provenance": {
+      "equity, rates_bp, fx": "measured: Yahoo Finance closes 2018-08-01 -> 2018-08-13",
+      "spreads_bp IG/HY/EM": "derived: bond-ETF return / duration net of the 10y move (LQD, HYG, EMB)",
+      "spreads_bp region:Turkey": "assumption (no free CDS history)",
+      "rates_bp EUR/other": "assumption: non-USD curves move 60% of USD (engine)"
+    }
+  },
+  "rates_shock": {
+    "title": "Taper tantrum (May-Jun 2013)",
+    "narrative": "Fed signals QE tapering; US 10y yield jumps ~1pp, credit and EM assets reprice.",
+    "event_types": [
+      "Macroeconomic"
+    ],
+    "window": [
+      "2013-05-02",
+      "2013-06-24"
+    ],
+    "affected_region": null,
+    "shocks": {
+      "equity": {
+        "global": -0.0116,
+        "region:China": -0.1455,
+        "region:Turkey": -0.2566,
+        "region:EM": -0.1508
+      },
+      "rates_bp": {
+        "USD": 91.7
+      },
+      "fx": {
+        "TRY": -0.0747,
+        "CNY": 0.0066,
+        "INR": -0.0947,
+        "EUR": -0.0058
+      },
+      "spreads_bp": {
+        "IG": 9.2,
+        "HY": 86.3,
+        "EM": 115.2
+      }
+    },
+    "provenance": {
+      "equity, rates_bp, fx": "measured: Yahoo Finance closes 2013-05-02 -> 2013-06-24",
+      "spreads_bp IG/HY/EM": "derived: bond-ETF return / duration net of the 10y move (LQD, HYG, EMB)",
+      "rates_bp EUR/other": "assumption: non-USD curves move 60% of USD (engine)"
+    }
+  },
+  "equity_vol_2d": {
+    "AAPL": 0.0166,
+    "MSFT": 0.0115,
+    "GOOGL": 0.014,
+    "AMZN": 0.0204,
+    "FB": 0.0218,
+    "NFLX": 0.029,
+    "INTC": 0.018,
+    "CSCO": 0.0126,
+    "ORCL": 0.0163,
+    "IBM": 0.015,
+    "ADBE": 0.0193,
+    "DIS": 0.013,
+    "CMCSA": 0.0182,
+    "VZ": 0.0173,
+    "NKE": 0.0186,
+    "SBUX": 0.0169,
+    "MCD": 0.0145,
+    "F": 0.0178,
+    "WMT": 0.0175,
+    "COST": 0.0161,
+    "PEP": 0.0133,
+    "KO": 0.0114,
+    "JPM": 0.012,
+    "C": 0.014,
+    "V": 0.0103,
+    "MA": 0.0127,
+    "PYPL": 0.0195,
+    "BA": 0.0173,
+    "XOM": 0.0119,
+    "PFE": 0.0114
+  }
+}

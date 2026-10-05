@@ -12,7 +12,7 @@ import pandas as pd
 
 from ripple.config import DATA_DIR
 
-MARKET = "MARKET"  # pseudo-entity for macro / geopolitical news not tied to one company
+from ripple.engine.regions import MARKET  # noqa: F401  (re-exported: pseudo-entity for market-wide news)
 
 
 @dataclass(frozen=True)

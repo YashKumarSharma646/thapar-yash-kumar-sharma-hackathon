@@ -61,3 +61,30 @@ class RiskSignal(BaseModel):
     impact_score: float = Field(ge=1.0, le=10.0)
     headline: str
     evidence: Evidence = Field(default_factory=Evidence)
+
+
+class StressResult(BaseModel):
+    """Module B output: the portfolio revalued under the scenario a high-impact signal triggered."""
+
+    result_id: str = Field(default_factory=lambda: uuid4().hex)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    trigger: RiskSignal
+    scenario: str
+    scenario_title: str
+    narrative: str
+    severity_multiplier: float
+    affected_region: str | None = None
+    shocks: dict[str, dict[str, float]]
+    assumptions: list[str] = Field(default_factory=list)
+    value_before: float
+    value_after: float
+    pnl_total: float
+    pnl_by_asset_class: dict[str, float]
+    pnl_by_region: dict[str, float]
+    expected_loss_before: float
+    expected_loss_after: float
+    rwa_before: float
+    rwa_after: float
+    cet1_ratio_before: float
+    cet1_ratio_after: float
+    top_positions: list[dict] = Field(default_factory=list)

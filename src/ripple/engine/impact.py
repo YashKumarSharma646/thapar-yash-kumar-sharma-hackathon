@@ -37,6 +37,7 @@ class BuzzTracker:
 
     def __init__(self):
         self._mentions: dict[str, deque[datetime]] = defaultdict(deque)
+        self._first_seen: dict[str, datetime] = {}
 
     def observe(self, entity: str, ts: datetime) -> float:
         q = self._mentions[entity]
@@ -44,7 +45,13 @@ class BuzzTracker:
         while q and q[0] < ts - WINDOW - BASELINE:
             q.popleft()
         recent = sum(1 for t in q if t >= ts - WINDOW)
-        baseline_daily = (len(q) - recent) / BASELINE.days
+        history = ts - self._first_seen.setdefault(entity, ts)
+        if history < WINDOW + BASELINE:
+            # Warm-up (e.g. the start of a replay): no full baseline yet, so compare with the average daily
+            # volume seen so far instead of an empty baseline that would make everything look abnormal.
+            baseline_daily = len(q) / max(1.0, history / timedelta(days=1))
+        else:
+            baseline_daily = (len(q) - recent) / BASELINE.days
         ratio = recent / (baseline_daily + 1.0)
         return min(1.0, math.log2(1.0 + ratio) / 4.0)  # ratio ~15x saturates at 1.0
 

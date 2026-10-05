@@ -3,7 +3,7 @@
 import logging
 
 from ripple.bus import get_client, publish
-from ripple.config import INGEST_MODE, REPLAY_SPEED, STREAM_RAW_TEXT, STREAM_SIGNALS
+from ripple.config import INGEST_MODE, REPLAY_SPEED, STREAM_RAW_TEXT, STREAM_SIGNALS, STREAM_STRESS
 from ripple.ingestion.replay import load_documents, replay
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -18,7 +18,7 @@ def main() -> None:
     docs = load_documents()
     log.info("Replaying %d documents (%s -> %s) at %.0fx", len(docs), docs[0].published_at, docs[-1].published_at, REPLAY_SPEED)
     # New replay session: clear the previous run's signals so consumers start from a clean slate.
-    client.delete("ripple:replay_clock", STREAM_SIGNALS, "ripple:engine_stats")
+    client.delete("ripple:replay_clock", STREAM_SIGNALS, STREAM_STRESS, "ripple:engine_stats")
     for i, doc in enumerate(replay(docs, REPLAY_SPEED), 1):
         publish(client, STREAM_RAW_TEXT, doc)
         client.set("ripple:replay_clock", doc.published_at.isoformat())
