@@ -34,17 +34,19 @@ def consume_batches(
     model: type[M],
     batch_size: int = 64,
     block_ms: int = 2000,
+    start: str = "0",
 ) -> Iterator[list[M]]:
     """Yield batches for a consumer group. A batch is acknowledged once the caller asks for the next one,
-    so a crash mid-batch leaves it pending for redelivery."""
-    def ensure_group() -> None:
+    so a crash mid-batch leaves it pending for redelivery. `start` applies when the group is first created
+    ("0": the whole stream, "$": only new messages); a group lost to a stream reset restarts from "0"."""
+    def ensure_group(start_id: str = "0") -> None:
         try:
-            client.xgroup_create(stream, group, id="0", mkstream=True)
+            client.xgroup_create(stream, group, id=start_id, mkstream=True)
         except redis.ResponseError as e:
             if "BUSYGROUP" not in str(e):
                 raise
 
-    ensure_group()
+    ensure_group(start)
     while True:
         try:
             response = client.xreadgroup(group, consumer, {stream: ">"}, count=batch_size, block=block_ms)

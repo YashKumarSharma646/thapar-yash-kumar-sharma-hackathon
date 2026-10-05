@@ -1,7 +1,8 @@
 """Module B service: subscribe to risk signals, stress-test the portfolio on high-impact events.
 
 A signal with impact >= STRESS_IMPACT_THRESHOLD triggers a stress test, unless the same scenario for the
-same target already ran within the cooldown (simulated time), so one news burst yields one test.
+same target already ran within the cooldown (simulated time), so one news burst yields one test. A signal at
+least ESCALATION points stronger than the one that last ran re-runs the test inside the cooldown.
 Results go to the Redis stream ripple:stress_results and data/processed/stress_results.jsonl.
 """
 
@@ -22,6 +23,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname
 log = logging.getLogger("ripple.stress_test")
 
 COOLDOWN = timedelta(hours=12)
+ESCALATION = 1.0
 RESULTS_JSONL = DATA_DIR / "processed" / "stress_results.jsonl"
 
 
@@ -42,7 +44,7 @@ class Trigger:
 
     def __init__(self, threshold: float = STRESS_IMPACT_THRESHOLD, cooldown: timedelta = COOLDOWN):
         self.threshold, self.cooldown = threshold, cooldown
-        self.last: dict[tuple, datetime] = {}
+        self.last: dict[tuple, tuple[datetime, float]] = {}
 
     def key(self, signal: RiskSignal, scenario: Scenario) -> tuple:
         return (scenario.name, signal.entity if is_company(signal.entity) else scenario.affected_region)
@@ -51,11 +53,13 @@ class Trigger:
         if signal.impact_score < self.threshold:
             return False
         k, t = self.key(signal, scenario), signal.published_at
-        if any(t < seen - timedelta(days=1) for seen in self.last.values()):
+        if any(t < seen - timedelta(days=1) for seen, _ in self.last.values()):
             self.last.clear()  # replay restarted
-        if k in self.last and t - self.last[k] < self.cooldown:
-            return False
-        self.last[k] = t
+        if k in self.last:
+            seen, impact = self.last[k]
+            if t - seen < self.cooldown and signal.impact_score < impact + ESCALATION:
+                return False
+        self.last[k] = (t, signal.impact_score)
         return True
 
 
@@ -67,7 +71,7 @@ def main() -> None:
     consumer = os.getenv("HOSTNAME", socket.gethostname())
     log.info("Stress tester ready: %d positions, threshold %.1f", len(book), trigger.threshold)
     with RESULTS_JSONL.open("a", encoding="utf-8") as sink:
-        for batch in consume_batches(client, STREAM_SIGNALS, "stress_test", consumer, RiskSignal):
+        for batch in consume_batches(client, STREAM_SIGNALS, "stress_test", consumer, RiskSignal, start="$"):
             for signal in batch:
                 if signal.impact_score < trigger.threshold:
                     continue

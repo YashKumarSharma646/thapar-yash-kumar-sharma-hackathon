@@ -91,3 +91,11 @@ def test_trigger_threshold_and_cooldown():
     assert not trig.should_run(signal(headline="China tariffs", ts=T0 + timedelta(hours=2)), sc)
     assert trig.should_run(signal(headline="China tariffs", ts=T0 + timedelta(hours=13)), sc)
     assert not trig.should_run(signal(impact=6.9, ts=T0 + timedelta(days=3)), sc)
+    # inside the cooldown only a materially stronger signal (+1 impact over the last run at 9.0) re-runs
+    assert not trig.should_run(signal(impact=9.8, headline="China tariffs", ts=T0 + timedelta(hours=14)), sc)
+    assert trig.should_run(signal(impact=10.0, headline="China tariffs", ts=T0 + timedelta(hours=14)), sc)
+
+
+def test_company_headline_never_triggers_market_scenario():
+    sc = build_scenario(signal("NFLX", EventType.MACROECONOMIC, 9, -0.6, "Netflix says forex benefit was smaller"), load_library())
+    assert sc.name == "company_event" and not sc.rates_bp and sc.equity["NFLX"] < 0

@@ -69,7 +69,9 @@ def build_scenario(signal: RiskSignal, library: dict | None = None) -> Scenario:
     library = library or load_library()
     m = severity_multiplier(signal.impact_score)
     region = REGION_NAME.get(signal.entity) or detect_region(signal.headline)
-    template = MARKET_TEMPLATE.get(signal.event_type)
+    # Market-wide episodes need market-wide news (a region or MARKET); a company headline that mentions
+    # macro factors only shocks that company.
+    template = None if is_company(signal.entity) else MARKET_TEMPLATE.get(signal.event_type)
     if template and signal.event_type != EventType.MACROECONOMIC and region in REGION_TEMPLATE:
         template = REGION_TEMPLATE[region]
     # A Credit Event about a named company is idiosyncratic; only a sovereign/EM one replays the crisis.

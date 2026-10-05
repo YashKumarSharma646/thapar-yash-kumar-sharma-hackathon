@@ -82,15 +82,20 @@ Impact (1–10) is calibrated against real price reactions, not hand-set weights
 Inputs are the model's severity, sentiment, event type, buzz and source; every input's log-odds contribution is shown on the evidence card.
 Impact ≥ 7, the stress-test trigger, means the top 3% of historical signals by predicted move probability.
 
-Fitted on 129k historical signals (2014–2020, replay window excluded) and tested on the replay window:
+Fitted on 129k historical signals (2014–2020, replay window excluded), compared with the hand-set Day 2 formula
+(both use the same buzz, with the warm-up fix, and region entities):
 
-| Replay window (7.4k signals) | Day 2 formula | Calibrated |
+| | Hand-set formula | Calibrated |
 |---|---|---|
-| Alert precision: impact ≥ 7 followed by a ≥ 2σ move | 19% | **42%** (base rate 10%) |
-| Stock-day ranking AUC | 0.647 | **0.664** |
-| Spearman with abs(abnormal move) | 0.106 | **0.147** |
+| Validation 2019–2020 (28k signals): AUC | 0.661 | 0.655 |
+| Replay window (7.4k signals): alert precision, impact ≥ 7 followed by a ≥ 2σ move | 32% | **47%** (base rate 11%) |
+| Replay window: signal AUC / stock-day AUC | 0.657 / 0.645 | 0.654 / 0.615 |
+| Replay window: Spearman with abs(abnormal move) | 0.144 | 0.154 |
 
-The Facebook Q2-miss headline (26 Jul 2018, −8.7σ) is the top signal of the replay.
+On ranking the two are on par; the calibrated model is kept because impact then has a stated meaning (a probability,
+and a threshold defined as the top 3% of history) and its alerts are more precise. The strongest single driver is buzz.
+The Facebook Q2-miss headline (26 Jul 2018, −8.7σ) and the Turkish lira crisis (10 Aug 2018, Turkey ETF −7.3σ) are
+among the replay's top alerts.
 Reproduce: `python scripts/fetch_prices.py && python scripts/build_calibration_set.py && python scripts/calibrate_impact.py`.
 
 ## Module B: event-driven portfolio stress testing

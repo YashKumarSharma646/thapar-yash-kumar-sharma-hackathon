@@ -34,7 +34,8 @@
   th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em;
     border-bottom: 1px solid var(--grid); padding: 6px 8px; }
   td { padding: 7px 8px; border-bottom: 1px solid var(--grid); color: var(--ink2); vertical-align: top; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .timeline td:first-child { white-space: nowrap; }
   td b { color: var(--ink); }
   .loss { color: var(--red); font-weight: 600; }
   .gain { color: var(--blue); font-weight: 600; }
@@ -65,8 +66,8 @@
     and stress-tests a wholesale banking book the moment a high-impact event breaks.</p>
   <div class="grid4" style="margin-top:44px">
     <div class="card stat"><div class="v">0.75</div><div class="l">event macro-F1 of the distilled model, vs 0.57 for keyword rules</div></div>
-    <div class="card stat"><div class="v">{{ALERT_PREC}}</div><div class="l">of impact ≥ 7 alerts followed by a ≥ 2σ abnormal price move (base rate {{BASE_RATE}})</div></div>
-    <div class="card stat"><div class="v">{{N_STRESS}}</div><div class="l">automatic stress tests in the 7-week replay; worst: {{WORST_PNL}}, CET1 to {{WORST_CET1}}</div></div>
+    <div class="card stat"><div class="v">47%</div><div class="l">of impact ≥ 7 alerts followed by a ≥ 2σ abnormal price move (base rate 11%)</div></div>
+    <div class="card stat"><div class="v">98</div><div class="l">automatic stress tests in the 7-week replay; worst: −$49m (lira crisis), CET1 to 11.7%</div></div>
     <div class="card stat"><div class="v">1 cmd</div><div class="l"><code>docker compose up</code>: six services, offline, no API keys</div></div>
   </div>
   <div class="footer"><span>Yash Kumar Sharma · Thapar Institute of Engineering and Technology</span><span>github.com/YashKumarSharma646/thapar-yash-kumar-sharma-hackathon</span></div>
@@ -127,26 +128,27 @@
 <!-- 4 · Impact -->
 <section class="slide">
   <div class="kicker">Impact score</div>
-  <h2>Impact is calibrated to what markets actually did</h2>
+  <h2>Impact means something: calibrated to what markets actually did</h2>
   <div class="grid2">
     <div>
-      <p>Impact estimates <b>P(material move)</b>: a 2-day market-adjusted return of at least 2σ for that stock or region. A logistic model, fitted on {{N_CALIB}} historical signals (2014–2020, demo window excluded), using severity, sentiment, event type, buzz and source.</p>
+      <p>Impact estimates <b>P(material move)</b>: a 2-day market-adjusted return of at least 2σ for that stock or region. A logistic model, fitted on 129k historical signals (2014–2020, demo window excluded), using severity, sentiment, event type, buzz and source.</p>
       <p><b>Impact ≥ 7</b>, the stress-test trigger, means the top 3% of historical signals by predicted move probability.</p>
       <p>Every signal shows its drivers in log-odds:</p>
-      <div class="quote">Facebook (FB) Q2 Earnings Miss, Shares Fall on Dim Outlook · impact {{FB_IMPACT}} · P(move) {{FB_P}}<br>
-        <span class="muted" style="font-size:13.5px">{{FB_DRIVERS}}</span></div>
-      <p style="margin-top:10px">Finding: sentiment adds almost nothing to <i>how big</i> the move is; it sets the <i>direction</i>, which Module B uses.</p>
+      <div class="quote">Facebook (FB) Q2 Earnings Miss, Shares Fall on Dim Outlook · impact 9.9 · P(move) 60%<br>
+        <span class="muted" style="font-size:13.5px">Drivers (log-odds): buzz +2.24 · earnings event +0.78 · severity +0.77 · sentiment +0.02</span></div>
+      <p style="margin-top:10px">Findings: <b>buzz</b> (abnormal attention) is the strongest driver; sentiment adds almost nothing to <i>how big</i> a move is but sets its <i>direction</i>, which Module B uses.</p>
     </div>
     <div>
       <h3>Test on the held-out demo window</h3>
       <table>
         <tr><th></th><th class="num">Hand-set formula</th><th class="num">Calibrated</th></tr>
-        <tr><td>Alert precision (impact ≥ 7 → ≥ 2σ move)</td><td class="num">{{PREC_BASE}}</td><td class="num"><b>{{ALERT_PREC}}</b></td></tr>
-        <tr><td>Stock-day ranking AUC</td><td class="num">{{AUC_BASE}}</td><td class="num"><b>{{AUC_CAL}}</b></td></tr>
-        <tr><td>Spearman with |abnormal move|</td><td class="num">{{SP_BASE}}</td><td class="num"><b>{{SP_CAL}}</b></td></tr>
-        <tr><td>Base rate of ≥ 2σ moves</td><td class="num" colspan="2">{{BASE_RATE}}</td></tr>
+        <tr><td>Alert precision (impact ≥ 7 → ≥ 2σ move)</td><td class="num">32%</td><td class="num"><b>47%</b></td></tr>
+        <tr><td>Stock-day ranking AUC</td><td class="num">0.645</td><td class="num">0.615</td></tr>
+        <tr><td>Validation 2019–20 AUC (28k signals)</td><td class="num">0.661</td><td class="num">0.655</td></tr>
+        <tr><td>Spearman with |abnormal move|</td><td class="num">0.144</td><td class="num">0.154</td></tr>
+        <tr><td>Base rate of ≥ 2σ moves</td><td class="num" colspan="2">11%</td></tr>
       </table>
-      <p style="margin-top:12px" class="muted">Predicting price moves from headlines alone is hard; an AUC in the mid-0.6s is a modest, honest result. The useful number is alert precision: about {{LIFT}}× the base rate.</p>
+      <p style="margin-top:12px" class="muted">On ranking, calibration only matches a well-tuned hand-set formula: predicting moves from headlines alone is hard. What it adds is meaning: impact is a probability, the alert threshold is the top 3% of history, and alerts are ~4× more likely than chance to precede a 2σ move.</p>
     </div>
   </div>
   <div class="footer"><span>Ripple</span><span>4 / 7</span></div>
@@ -173,9 +175,12 @@
       <h3>Full-severity results (impact 10)</h3>
       <table>
         <tr><th>Event</th><th class="num">P&amp;L</th><th class="num">CET1</th></tr>
-        {{SCENARIO_ROWS}}
+        <tr><td>Rates shock (taper tantrum)</td><td class="num loss">−$279m</td><td class="num">13.0% → 6.8%</td></tr>
+        <tr><td>Turkish lira crisis</td><td class="num loss">−$116m</td><td class="num">13.0% → 10.2%</td></tr>
+        <tr><td>US–China trade war</td><td class="num loss">−$81m</td><td class="num">13.0% → 10.8%</td></tr>
+        <tr><td>Facebook earnings miss</td><td class="num loss">−$7.5m</td><td class="num">13.0% → 12.8%</td></tr>
       </table>
-      <p style="margin-top:12px">Hedges behave: in the lira scenario the short-TRY forward offsets the FX loss on TRY loans; in the rates shock the pay-fixed swap offsets bond losses.</p>
+      <p style="margin-top:12px">The book's biggest vulnerability is <b>rate duration</b> ($1.6bn of sovereign bonds), not credit. Hedges behave: the short-TRY forward offsets the FX loss on lira loans; the pay-fixed swap offsets part of the bond losses.</p>
     </div>
   </div>
   <div class="footer"><span>Ripple</span><span>5 / 7</span></div>
@@ -184,16 +189,20 @@
 <!-- 6 · Demo results -->
 <section class="slide">
   <div class="kicker">Live demo: Jul – Aug 2018 replayed</div>
-  <h2>{{DEMO_HEADLINE}}</h2>
+  <h2>It stays calm on chatter and fires on what moved prices: Facebook's crash and the lira crisis</h2>
   <div class="grid4" style="margin-bottom:20px">
-    <div class="card stat"><div class="v">{{N_DOCS}}</div><div class="l">documents ingested; {{NOISE}} of social posts filtered as noise</div></div>
-    <div class="card stat"><div class="v">{{N_SIGNALS}}</div><div class="l">risk signals; {{N_ALERTS}} high-impact (≥ 7)</div></div>
-    <div class="card stat"><div class="v">{{N_STRESS}}</div><div class="l">stress tests triggered automatically</div></div>
-    <div class="card stat"><div class="v">{{WORST_CET1}}</div><div class="l">lowest stressed CET1 ratio (from 13.0%)</div></div>
+    <div class="card stat"><div class="v">8,556</div><div class="l">documents ingested; 953 spam and chatter posts filtered as noise</div></div>
+    <div class="card stat"><div class="v">7,395</div><div class="l">risk signals; 234 high-impact (≥ 7)</div></div>
+    <div class="card stat"><div class="v">98</div><div class="l">stress tests triggered automatically</div></div>
+    <div class="card stat"><div class="v">11.7%</div><div class="l">lowest stressed CET1 ratio (from 13.0%)</div></div>
   </div>
-  <table>
+  <table class="timeline">
     <tr><th>Time (2018)</th><th>Trigger headline</th><th>Entity · event</th><th class="num">Impact</th><th>Scenario</th><th class="num">P&amp;L</th><th class="num">CET1</th></tr>
-    {{TIMELINE_ROWS}}
+    <tr><td>20 Jul 07:45</td><td>Microsoft (MSFT) Beats Q4 Earnings, Top Line Grows on Azure</td><td>MSFT · Earnings</td><td class="num">8.0</td><td>Issuer shock (positive news)</td><td class="num gain">+$0.8m</td><td class="num">13.02%</td></tr>
+    <tr><td>25 Jul 16:38</td><td>Plunging Facebook takes a chunk out of the QQQs</td><td>FB · Earnings</td><td class="num">8.5</td><td>Issuer shock</td><td class="num loss">−$5.2m</td><td class="num">12.86%</td></tr>
+    <tr><td>26 Jul 17:41</td><td>Facebook (FB) Q2 Earnings Miss, Shares Fall on Dim Outlook</td><td>FB · Earnings</td><td class="num">9.9</td><td>Issuer shock, re-run on escalation</td><td class="num loss">−$7.5m</td><td class="num">12.81%</td></tr>
+    <tr><td>10 Aug 16:09</td><td>Trump's Turkey tariffs seen raising costs for Kinder Morgan…</td><td>TURKEY · Geopolitical</td><td class="num">7.0</td><td>Turkish lira crisis ×40%</td><td class="num loss">−$49.3m</td><td class="num">11.74%</td></tr>
+    <tr><td>16 Aug 04:00</td><td>Walmart Soars On Q2 Earnings Beat, Other Retailers Follow</td><td>WMT · Earnings</td><td class="num">9.2</td><td>Issuer shock (positive; no WMT equity)</td><td class="num ">$0.0m</td><td class="num">13.00%</td></tr>
   </table>
   <div class="footer"><span>Ripple</span><span>6 / 7</span></div>
 </section>
