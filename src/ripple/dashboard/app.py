@@ -70,7 +70,7 @@ def sentiment_chart(df: pd.DataFrame, entities: list[str]) -> alt.Chart:
         scale=alt.Scale(domain=entities, range=[ENTITY_COLORS[e] for e in entities]),
     )
     hover = alt.selection_point(fields=["day"], nearest=True, on="pointerover", empty=False)
-    base = alt.Chart(daily).encode(x=alt.X("day:T", title=None, axis=alt.Axis(format="%d %b", grid=False)))
+    base = alt.Chart(daily).encode(x=alt.X("day:T", title=None, axis=alt.Axis(format="%d %b", grid=False, tickCount={"interval": "day", "step": 1})))
     zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color=AXIS, strokeWidth=1).encode(y="y:Q")
     lines = base.mark_line(strokeWidth=2, interpolate="monotone").encode(
         y=alt.Y("sentiment:Q", title="Mean sentiment", scale=alt.Scale(domain=[-1, 1])), color=color
@@ -111,7 +111,7 @@ def evidence_card(row: pd.Series) -> None:
     st.markdown(f"**{row.entity}** · {row.event_type} · {status_label(row.impact_score)} · impact **{row.impact_score:.1f}**")
     model = row.evidence.get("model") or "rules+finbert"
     st.caption(f"{row.published_at:%d %b %Y %H:%M} · {row.source} · analysed by {model}")
-    st.write(row.headline)
+    st.write(escape_dollars(row.headline))
     cols = st.columns(4)
     cols[0].metric("Sentiment", f"{row.sentiment_score:+.2f}")
     if "p_material_move" in breakdown:  # calibrated impact model
@@ -205,30 +205,42 @@ def live_view() -> None:
 
 
 
+def escape_dollars(text: str) -> str:
+    """Streamlit renders $...$ as LaTeX; headlines like "EPS $0.62 beats $0.61" must stay plain text."""
+    return text.replace("$", r"\$")
+
+
 def money(x: float) -> str:
     sign = "-" if x < 0 else ""
     return f"{sign}${abs(x) / 1e9:,.2f}bn" if abs(x) >= 1e9 else f"{sign}${abs(x) / 1e6:,.1f}m"
 
 
-def pnl_bars(values: dict[str, float], title: str) -> alt.Chart:
+def pnl_bars(values: dict[str, float], title: str) -> alt.Chart | None:
     data = pd.DataFrame({"bucket": list(values), "pnl": [v / 1e6 for v in values.values()]})
     data = data[data.pnl.abs() >= 0.05]
+    if data.empty:
+        return None
     data["direction"] = ["Gain" if v >= 0 else "Loss" for v in data.pnl]
     data["label"] = [f"{v:+,.1f}" for v in data.pnl]
     order = data.sort_values("pnl").bucket.tolist()
+    # Headroom on both sides so value labels never collide with the axis labels.
+    lo, hi = float(data.pnl.min()), float(data.pnl.max())
+    span = max(abs(lo), abs(hi), 0.1)
+    domain = [min(0.0, lo) - 0.25 * span, max(0.0, hi) + 0.25 * span]
     base = alt.Chart(data).encode(
         y=alt.Y("bucket:N", sort=order, title=None, axis=alt.Axis(labelColor=INK_2, labelLimit=160)),
         tooltip=[alt.Tooltip("bucket:N", title=title), alt.Tooltip("pnl:Q", title="P&L ($m)", format="+,.1f")],
     )
     bars = base.mark_bar(cornerRadiusEnd=4, height=14).encode(
-        x=alt.X("pnl:Q", title="P&L ($m)", axis=alt.Axis(grid=True, tickCount=5)),
+        x=alt.X("pnl:Q", title="P&L ($m)", scale=alt.Scale(domain=domain), axis=alt.Axis(grid=True, tickCount=5)),
         color=alt.Color("direction:N", title=None, scale=alt.Scale(domain=["Gain", "Loss"], range=[GAIN, LOSS])),
     )
     gains = base.transform_filter("datum.pnl >= 0").mark_text(align="left", dx=4, color=INK_2, fontSize=11)
     losses = base.transform_filter("datum.pnl < 0").mark_text(align="right", dx=-4, color=INK_2, fontSize=11)
     labels = [m.encode(x="pnl:Q", text="label:N") for m in (gains, losses)]
-    zero = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color=AXIS).encode(x="x:Q")
-    return chart_theme(alt.layer(zero, bars, *labels).properties(height=max(120, 34 * len(data))))
+    # Every layer shares one data source: Streamlit mis-sizes layered charts that mix data sources.
+    zero = base.mark_rule(color=AXIS).encode(x=alt.datum(0))
+    return chart_theme(alt.layer(zero, bars, *labels).properties(height=alt.Step(30)))
 
 
 def stress_card(r: dict) -> None:
@@ -237,7 +249,7 @@ def stress_card(r: dict) -> None:
         f"**Trigger:** {t['entity']} · {t['event_type']} · {status_label(t['impact_score'])} · "
         f"impact **{t['impact_score']:.1f}** · {pd.to_datetime(t['published_at']):%d %b %Y %H:%M}"
     )
-    st.write(f"“{t['headline']}”")
+    st.write(f"“{escape_dollars(t['headline'])}”")
     st.markdown(f"**Scenario:** {r['scenario_title']} · severity ×{r['severity_multiplier']:.0%}")
     st.caption(r["narrative"])
 
@@ -249,13 +261,15 @@ def stress_card(r: dict) -> None:
                 money(r["expected_loss_after"] - r["expected_loss_before"]), delta_color="inverse")
     k[3].metric("Credit RWA", money(r["rwa_after"]), money(r["rwa_after"] - r["rwa_before"]), delta_color="inverse")
 
-    left, right = st.columns(2)
-    with left:
-        st.markdown("**P&L by asset class**")
-        st.altair_chart(pnl_bars(r["pnl_by_asset_class"], "Asset class"), use_container_width=True)
-    with right:
-        st.markdown("**P&L by region**")
-        st.altair_chart(pnl_bars(r["pnl_by_region"], "Region"), use_container_width=True)
+    for col, (title, key, label) in zip(st.columns(2), [("P&L by asset class", "pnl_by_asset_class", "Asset class"),
+                                                        ("P&L by region", "pnl_by_region", "Region")]):
+        with col:
+            st.markdown(f"**{title}**")
+            chart = pnl_bars(r[key], label)
+            if chart is None:
+                st.caption("No material P&L (under $0.05m in every bucket).")
+            else:
+                st.altair_chart(chart, use_container_width=True)
 
     st.markdown("**Largest position impacts**")
     top = pd.DataFrame(r["top_positions"])
