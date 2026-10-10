@@ -4,7 +4,7 @@
 
 S&P Global × Crisil Campus Hackathon 2026 · Case Study submission · Yash Kumar Sharma, Thapar Institute of Engineering and Technology
 
-> 🎥 Demo video: _link coming soon_ · 📊 Deck: [`docs/presentation.pdf`](docs/presentation.pdf)
+> 🎥 Demo video: [youtu.be/_b28s_7pNXo](https://youtu.be/_b28s_7pNXo) · 📊 Deck: [`docs/presentation.pdf`](docs/presentation.pdf)
 
 ## What it does
 
